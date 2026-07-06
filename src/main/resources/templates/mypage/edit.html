@@ -11,11 +11,13 @@
 <th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
 <div class="content-wrap">
   <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
-  <div class="page-wrap" style="max-width:720px;">
+  <div class="page-wrap">
     <div class="page-title">Edit Profile <span class="title-ko">회원정보 변경</span></div>
     <div class="msg-error" th:if="${error}" th:text="${error}"></div>
+
     <form th:action="@{/mypage/edit}" method="post" id="editForm" novalidate>
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
       <div class="form-group">
         <label>아이디 (변경 불가)</label>
         <input type="text" class="form-control" th:value="${user.username}" disabled>
@@ -34,23 +36,23 @@
       </div>
       <div class="form-group">
         <label>이메일</label>
-        <input type="email" name="email" id="email" class="form-control" placeholder="example@email.com" th:value="${user.email}">
+        <input type="email" name="email" id="email" class="form-control" th:value="${user.email}">
         <div class="invalid-feedback" id="e-email">유효한 이메일 형식을 입력해주세요.</div>
       </div>
       <div class="row-2">
         <div class="form-group">
-          <label>이름 <span style="color:#c0392b;">*</span></label>
+          <label>이름 <span style="color:#e74c3c;">*</span></label>
           <input type="text" name="name" id="nm" class="form-control" th:value="${user.name}">
           <div class="invalid-feedback" id="e-nm">이름을 입력해주세요.</div>
         </div>
         <div class="form-group">
-          <label>생년월일 <span style="color:#c0392b;">*</span> <span style="color:#555;font-size:9px;">8자리</span></label>
+          <label>생년월일 <span style="color:#e74c3c;">*</span></label>
           <input type="text" name="birthdate" id="bd" class="form-control" maxlength="8" th:value="${user.birthdate}">
           <div class="invalid-feedback" id="e-bd">생년월일 8자리를 입력해주세요.</div>
         </div>
       </div>
       <div class="form-group">
-        <label>휴대전화번호 <span style="color:#c0392b;">*</span></label>
+        <label>휴대전화번호 <span style="color:#e74c3c;">*</span></label>
         <input type="tel" name="phone" id="ph" class="form-control" th:value="${user.phone}">
         <div class="invalid-feedback" id="e-ph">올바른 휴대전화번호를 입력해주세요.</div>
       </div>
@@ -74,11 +76,11 @@
       </div>
       <div class="form-group">
         <label>주소</label>
-        <input type="text" name="address" class="form-control" placeholder="주소 입력" th:value="${user.address}">
+        <input type="text" name="address" class="form-control" th:value="${user.address}">
       </div>
       <div class="divider"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <button type="submit" class="txt-link primary">수정완료</button>
+        <button type="submit" class="btn btn-fill">수정 완료</button>
         <a th:href="@{/mypage}" class="txt-link">← 돌아가기</a>
       </div>
     </form>
@@ -98,8 +100,6 @@ document.getElementById('editForm').addEventListener('submit',function(e){
     if(!/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/.test(pw)){document.getElementById('pw').classList.add('is-invalid');document.getElementById('e-pw').classList.add('show');ok=false;}
     else if(pw!==cpw){document.getElementById('cpw').classList.add('is-invalid');document.getElementById('e-cpw').classList.add('show');ok=false;}
   }
-  const em=document.getElementById('email').value;
-  if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){document.getElementById('email').classList.add('is-invalid');document.getElementById('e-email').classList.add('show');ok=false;}
   if(!ok)e.preventDefault();
 });
 document.getElementById('bd').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'');});

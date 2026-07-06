@@ -6,36 +6,59 @@
   <title>Mypage — gochuchamchi</title>
   <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/common.css}">
-  <style>
-    .info-row{display:flex;align-items:baseline;padding:16px 0;border-bottom:0.5px solid #111;}
-    .info-label{width:140px;min-width:140px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:400;}
-    .info-value{font-size:13px;color:#ccc;font-weight:300;}
-  </style>
 </head>
 <body>
 <th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
 <div class="content-wrap">
   <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
-  <div class="page-wrap" style="max-width:720px;">
-    <div class="page-title">My Account <span class="title-ko" th:text="${user.name}">홍길동</span></div>
+  <div class="page-wrap">
+    <div class="page-title">My Account <span class="title-ko" th:text="${user.name}"></span></div>
     <div class="msg-success" th:if="${success}" th:text="${success}"></div>
     <div class="msg-error" th:if="${error}" th:text="${error}"></div>
 
-    <div class="info-row"><div class="info-label">아이디</div><div class="info-value" th:text="${user.username}"></div></div>
-    <div class="info-row"><div class="info-label">이름</div><div class="info-value" th:text="${user.name}"></div></div>
-    <div class="info-row"><div class="info-label">이메일</div><div class="info-value" th:text="${user.email ?: '—'}"></div></div>
-    <div class="info-row"><div class="info-label">생년월일</div>
-      <div class="info-value" th:text="${user.birthdate != null ? #strings.substring(user.birthdate,0,4) + '. ' + #strings.substring(user.birthdate,4,6) + '. ' + #strings.substring(user.birthdate,6,8) : '—'}"></div>
+    <div class="info-row">
+      <div class="info-label">아이디</div>
+      <div class="info-value" th:text="${user.username}"></div>
     </div>
-    <div class="info-row"><div class="info-label">휴대전화</div>
-      <div class="info-value" th:text="${user.phone != null ? (#strings.length(user.phone) == 11 ? #strings.substring(user.phone,0,3)+'-'+#strings.substring(user.phone,3,7)+'-'+#strings.substring(user.phone,7,11) : user.phone) : '—'}"></div>
+    <div class="info-row">
+      <div class="info-label">이름</div>
+      <div class="info-value" th:text="${user.name}"></div>
     </div>
-    <div class="info-row"><div class="info-label">성별</div><div class="info-value" th:text="${user.gender == 'M' ? '남자' : '여자'}"></div></div>
-    <div class="info-row"><div class="info-label">국적</div><div class="info-value" th:text="${user.nationality == 'domestic' ? '내국인' : '외국인'}"></div></div>
-    <div class="info-row" style="border-bottom:none;"><div class="info-label">주소</div><div class="info-value" th:text="${user.address ?: '—'}"></div></div>
+    <div class="info-row">
+      <div class="info-label">이메일</div>
+      <div class="info-value" th:text="${user.email ?: '—'}"></div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">생년월일</div>
+      <div class="info-value">
+        <span th:if="${user.birthdate != null and #strings.length(user.birthdate) == 8}"
+              th:text="${#strings.substring(user.birthdate,0,4) + '. ' + #strings.substring(user.birthdate,4,6) + '. ' + #strings.substring(user.birthdate,6,8)}"></span>
+        <span th:unless="${user.birthdate != null and #strings.length(user.birthdate) == 8}">—</span>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">휴대전화</div>
+      <div class="info-value">
+        <span th:if="${user.phone != null and #strings.length(user.phone) == 11}"
+              th:text="${#strings.substring(user.phone,0,3) + '-' + #strings.substring(user.phone,3,7) + '-' + #strings.substring(user.phone,7,11)}"></span>
+        <span th:unless="${user.phone != null and #strings.length(user.phone) == 11}" th:text="${user.phone ?: '—'}"></span>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">성별</div>
+      <div class="info-value" th:text="${user.gender == 'M' ? '남자' : '여자'}"></div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">국적</div>
+      <div class="info-value" th:text="${user.nationality == 'domestic' ? '내국인' : '외국인'}"></div>
+    </div>
+    <div class="info-row" style="border-bottom:none;">
+      <div class="info-label">주소</div>
+      <div class="info-value" th:text="${user.address ?: '—'}"></div>
+    </div>
 
-    <div style="margin-top:40px;">
-      <a th:href="@{/mypage/edit}" class="txt-link primary">회원 정보 변경</a>
+    <div style="margin-top:48px;">
+      <a th:href="@{/mypage/edit}" class="btn">회원 정보 변경</a>
     </div>
   </div>
 </div>

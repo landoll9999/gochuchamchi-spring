@@ -2,23 +2,24 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title th:text="${notice.title + ' — gochuchamchi'}">Notice — gochuchamchi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${notice.title} + ' — gochuchamchi'">Notice — gochuchamchi</title>
   <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
-    .notice-wrap{padding:56px 64px;flex:1;max-width:800px;}
-    .detail-header{border-bottom:0.5px solid #1a1a1a;padding-bottom:24px;margin-bottom:36px;}
-    .detail-title{font-size:20px;font-weight:400;color:#fff;margin-bottom:14px;line-height:1.4;}
-    .pin-badge{display:inline-block;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#000;background:#fff;padding:2px 7px;margin-right:10px;vertical-align:middle;}
-    .detail-meta{display:flex;gap:24px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;}
-    .detail-body{font-size:13px;line-height:2;color:#888;white-space:pre-line;word-break:keep-all;}
+    .notice-detail{padding:64px 80px;flex:1;max-width:860px;}
+    .detail-header{border-bottom:2px solid #111;padding-bottom:28px;margin-bottom:40px;}
+    .detail-title{font-size:24px;font-weight:500;color:#111;margin-bottom:16px;line-height:1.4;}
+    .pin-badge{display:inline-block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#111;padding:3px 8px;margin-right:10px;vertical-align:middle;}
+    .detail-meta{display:flex;gap:24px;font-size:12px;letter-spacing:1px;color:#aaa;}
+    .detail-body{font-size:15px;line-height:2.2;color:#555;white-space:pre-line;word-break:keep-all;}
   </style>
 </head>
 <body>
 <th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
 <div class="content-wrap">
   <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
-  <div class="notice-wrap">
+  <div class="notice-detail">
     <div class="detail-header">
       <div class="detail-title">
         <span th:if="${notice.pinned}" class="pin-badge">공지</span>
@@ -26,12 +27,12 @@
       </div>
       <div class="detail-meta">
         <span th:text="${notice.author}"></span>
-        <span th:text="${#temporals.format(notice.createdAt,'yyyy-MM-dd')}"></span>
-        <span th:text="'Views ' + ${notice.views}"></span>
+        <span th:text="${notice.createdAtStr}"></span>
+        <span th:text="'조회 ' + ${notice.views}"></span>
       </div>
     </div>
     <div class="detail-body" th:text="${notice.content}"></div>
-    <a th:href="@{/notice}" class="txt-link" style="display:inline-block;margin-top:48px;">← 목록으로</a>
+    <a th:href="@{/notice}" class="txt-link" style="display:inline-block;margin-top:56px;">← 목록으로</a>
   </div>
 </div>
 <script th:src="@{/js/common.js}"></script>
