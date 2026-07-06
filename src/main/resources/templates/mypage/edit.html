@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — gochuchamchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body>
+<th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
+<div class="content-wrap">
+  <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
+  <div class="page-wrap" style="max-width:720px;">
+    <div class="page-title">Edit Profile <span class="title-ko">회원정보 변경</span></div>
+    <div class="msg-error" th:if="${error}" th:text="${error}"></div>
+    <form th:action="@{/mypage/edit}" method="post" id="editForm" novalidate>
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="form-group">
+        <label>아이디 (변경 불가)</label>
+        <input type="text" class="form-control" th:value="${user.username}" disabled>
+      </div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>새 비밀번호</label>
+          <input type="password" name="newPassword" id="pw" class="form-control" placeholder="변경 시에만 입력">
+          <div class="invalid-feedback" id="e-pw">8자 이상 영문+숫자+특수문자 포함</div>
+        </div>
+        <div class="form-group">
+          <label>새 비밀번호 확인</label>
+          <input type="password" name="confirmPassword" id="cpw" class="form-control" placeholder="비밀번호 재입력">
+          <div class="invalid-feedback" id="e-cpw">비밀번호가 일치하지 않습니다.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="example@email.com" th:value="${user.email}">
+        <div class="invalid-feedback" id="e-email">유효한 이메일 형식을 입력해주세요.</div>
+      </div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>이름 <span style="color:#c0392b;">*</span></label>
+          <input type="text" name="name" id="nm" class="form-control" th:value="${user.name}">
+          <div class="invalid-feedback" id="e-nm">이름을 입력해주세요.</div>
+        </div>
+        <div class="form-group">
+          <label>생년월일 <span style="color:#c0392b;">*</span> <span style="color:#555;font-size:9px;">8자리</span></label>
+          <input type="text" name="birthdate" id="bd" class="form-control" maxlength="8" th:value="${user.birthdate}">
+          <div class="invalid-feedback" id="e-bd">생년월일 8자리를 입력해주세요.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>휴대전화번호 <span style="color:#c0392b;">*</span></label>
+        <input type="tel" name="phone" id="ph" class="form-control" th:value="${user.phone}">
+        <div class="invalid-feedback" id="e-ph">올바른 휴대전화번호를 입력해주세요.</div>
+      </div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>성별</label>
+          <div class="toggle-group" id="gGrp">
+            <button type="button" class="toggle-btn" th:classappend="${user.gender == 'M'} ? 'active'" data-v="M" onclick="selT('gGrp','gender',this)">남자</button>
+            <button type="button" class="toggle-btn" th:classappend="${user.gender == 'F'} ? 'active'" data-v="F" onclick="selT('gGrp','gender',this)">여자</button>
+          </div>
+          <input type="hidden" name="gender" id="gender" th:value="${user.gender}">
+        </div>
+        <div class="form-group">
+          <label>국적</label>
+          <div class="toggle-group" id="nGrp">
+            <button type="button" class="toggle-btn" th:classappend="${user.nationality == 'domestic'} ? 'active'" data-v="domestic" onclick="selT('nGrp','nationality',this)">내국인</button>
+            <button type="button" class="toggle-btn" th:classappend="${user.nationality == 'foreign'} ? 'active'" data-v="foreign" onclick="selT('nGrp','nationality',this)">외국인</button>
+          </div>
+          <input type="hidden" name="nationality" id="nationality" th:value="${user.nationality}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>주소</label>
+        <input type="text" name="address" class="form-control" placeholder="주소 입력" th:value="${user.address}">
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <button type="submit" class="txt-link primary">수정완료</button>
+        <a th:href="@{/mypage}" class="txt-link">← 돌아가기</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script th:src="@{/js/common.js}"></script>
+<script>
+function selT(g,h,btn){document.getElementById(g).querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById(h).value=btn.dataset.v;}
+document.getElementById('editForm').addEventListener('submit',function(e){
+  let ok=true;
+  function chk(id,eid,fn){const el=document.getElementById(id),er=document.getElementById(eid);if(!fn(el.value)){el.classList.add('is-invalid');er.classList.add('show');ok=false;}else{el.classList.remove('is-invalid');er.classList.remove('show');}}
+  chk('nm','e-nm',v=>v.trim().length>0);
+  chk('bd','e-bd',v=>/^\d{8}$/.test(v));
+  chk('ph','e-ph',v=>/^01[0-9]\d{7,8}$/.test(v));
+  const pw=document.getElementById('pw').value,cpw=document.getElementById('cpw').value;
+  if(pw){
+    if(!/^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/.test(pw)){document.getElementById('pw').classList.add('is-invalid');document.getElementById('e-pw').classList.add('show');ok=false;}
+    else if(pw!==cpw){document.getElementById('cpw').classList.add('is-invalid');document.getElementById('e-cpw').classList.add('show');ok=false;}
+  }
+  const em=document.getElementById('email').value;
+  if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){document.getElementById('email').classList.add('is-invalid');document.getElementById('e-email').classList.add('show');ok=false;}
+  if(!ok)e.preventDefault();
+});
+document.getElementById('bd').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'');});
+document.getElementById('ph').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'');});
+</script>
+</body>
+</html>

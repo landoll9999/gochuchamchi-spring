@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Notice — gochuchamchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    .notice-wrap{padding:56px 64px;flex:1;}
+    .page-title-center{text-align:center;margin-bottom:48px;}
+    .page-title-center h1{font-family:'Permanent Marker',cursive;font-size:32px;color:#fff;margin-bottom:10px;}
+    .page-title-center p{font-size:11px;letter-spacing:2px;color:#444;text-transform:uppercase;}
+    .notice-table{width:100%;border-collapse:collapse;}
+    .notice-table thead tr{border-top:0.5px solid #2a2a2a;border-bottom:0.5px solid #2a2a2a;}
+    .notice-table thead th{padding:14px 12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:400;text-align:center;}
+    .notice-table thead th.title-col{text-align:left;}
+    .notice-table tbody tr{border-bottom:0.5px solid #111;cursor:pointer;transition:background 0.15s;}
+    .notice-table tbody tr:hover{background:#0a0a0a;}
+    .notice-table tbody td{padding:16px 12px;font-size:12px;color:#777;vertical-align:middle;text-align:center;}
+    .notice-table tbody td.title-col{text-align:left;color:#ccc;padding-right:32px;}
+    .notice-table tbody tr:hover td.title-col{color:#fff;}
+    .pin-row td{background:#050505;}
+    .pin-badge{display:inline-block;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#000;background:#fff;padding:2px 7px;margin-right:10px;vertical-align:middle;}
+    .pagination{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:40px;padding-top:28px;border-top:0.5px solid #111;}
+    .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;font-size:12px;color:#444;text-decoration:none;transition:color 0.15s;}
+    .pagination a:hover{color:#fff;}
+    .pagination .current{color:#fff;border-bottom:1px solid #fff;}
+    .search-bar{display:flex;align-items:center;gap:8px;margin-top:32px;padding-top:20px;border-top:0.5px solid #111;}
+    .search-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-right:4px;}
+    .search-select{background:transparent;border:0.5px solid #2a2a2a;color:#777;font-size:10px;padding:7px 12px;outline:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:border-color 0.15s;}
+    .search-select:focus{border-color:#fff;color:#fff;}
+    .search-select option{background:#111;}
+    .search-input{flex:1;max-width:280px;background:transparent;border:0.5px solid #2a2a2a;color:#fff;font-size:12px;padding:7px 14px;outline:none;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:border-color 0.15s;}
+    .search-input:focus{border-color:#fff;}
+    .search-input::placeholder{color:#333;}
+    .search-btn{padding:7px 20px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#000;background:#fff;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:all 0.2s;}
+    .search-btn:hover{background:transparent;color:#fff;border:0.5px solid #fff;}
+  </style>
+</head>
+<body>
+<th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
+<div class="content-wrap">
+  <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
+  <div class="notice-wrap">
+    <div class="page-title-center">
+      <h1>Notice</h1>
+      <p>공지사항입니다</p>
+    </div>
+    <table class="notice-table">
+      <thead>
+        <tr>
+          <th style="width:80px;">번호</th>
+          <th class="title-col">제목</th>
+          <th style="width:120px;">작성자</th>
+          <th style="width:120px;">작성일</th>
+          <th style="width:80px;">조회</th>
+        </tr>
+      </thead>
+      <tbody>
+        <th:block th:if="${#lists.isEmpty(notices)}">
+          <tr><td colspan="5" style="text-align:center;color:#333;padding:60px;font-size:11px;letter-spacing:3px;text-transform:uppercase;">No notices</td></tr>
+        </th:block>
+        <tr th:each="n, stat : ${notices}"
+            th:classappend="${n.pinned} ? 'pin-row'"
+            th:onclick="|location.href='@{/notice/{id}(id=${n.id})}'|">
+          <td style="font-size:11px;color:#333;">
+            <span th:if="${n.pinned}" class="pin-badge">공지</span>
+            <span th:unless="${n.pinned}" th:text="${totalCount - (currentPage - 1) * 15 - stat.index}"></span>
+          </td>
+          <td class="title-col">
+            <span th:if="${n.pinned}" class="pin-badge">공지</span>
+            <span th:text="${n.title}"></span>
+          </td>
+          <td th:text="${n.author}">gochuchamchi</td>
+          <td th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd')}"></td>
+          <td th:text="${n.views}">0</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination" th:if="${totalPages > 1}">
+      <a th:href="@{/notice(page=${currentPage-1})}" th:if="${currentPage > 1}">&#8249;</a>
+      <th:block th:each="i : ${#numbers.sequence(1,totalPages)}">
+        <span class="current" th:if="${i == currentPage}" th:text="${i}"></span>
+        <a th:unless="${i == currentPage}" th:href="@{/notice(page=${i})}" th:text="${i}"></a>
+      </th:block>
+      <a th:href="@{/notice(page=${currentPage+1})}" th:if="${currentPage < totalPages}">&#8250;</a>
+    </div>
+    <div class="search-bar">
+      <span class="search-label">검색어</span>
+      <form th:action="@{/notice}" method="get" style="display:flex;gap:8px;align-items:center;">
+        <select name="period" class="search-select">
+          <option value="week" th:selected="${period=='week'}">일주일</option>
+          <option value="month" th:selected="${period=='month'}">한달</option>
+          <option value="year" th:selected="${period=='year'}">1년</option>
+          <option value="all" th:selected="${period=='all'}">전체</option>
+        </select>
+        <select name="type" class="search-select">
+          <option value="title" th:selected="${type=='title'}">제목</option>
+          <option value="content" th:selected="${type=='content'}">내용</option>
+          <option value="both" th:selected="${type=='both'}">제목+내용</option>
+        </select>
+        <input type="text" name="keyword" class="search-input" placeholder="검색어를 입력하세요" th:value="${keyword}">
+        <button type="submit" class="search-btn">찾기</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script th:src="@{/js/common.js}"></script>
+</body>
+</html>

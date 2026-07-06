@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${product.name + ' — gochuchamchi'}">Product — gochuchamchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    .product-wrap{display:flex;gap:64px;padding:48px 56px;flex:1;}
+    .img-section{width:480px;min-width:480px;}
+    .main-img{width:100%;aspect-ratio:3/4;background:#0d0d0d;position:relative;overflow:hidden;margin-bottom:12px;}
+    .main-img img{width:100%;height:100%;object-fit:cover;filter:grayscale(15%);transition:opacity 0.2s;}
+    .main-img .no-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#222;}
+    .badge-new{position:absolute;top:14px;left:14px;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#fff;color:#000;padding:3px 8px;}
+    .thumb-list{display:flex;gap:8px;}
+    .thumb{width:80px;height:80px;background:#0d0d0d;cursor:pointer;overflow:hidden;border:0.5px solid transparent;transition:border-color 0.15s;flex-shrink:0;}
+    .thumb.active{border-color:#fff;}
+    .thumb:hover{border-color:#444;}
+    .thumb img{width:100%;height:100%;object-fit:cover;filter:grayscale(15%);}
+    .thumb .no-img-sm{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:8px;color:#222;}
+    .info-section{flex:1;padding-top:8px;}
+    .breadcrumb{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;margin-bottom:24px;display:flex;align-items:center;gap:8px;}
+    .breadcrumb a{color:#444;text-decoration:none;transition:color 0.15s;}
+    .breadcrumb a:hover{color:#fff;}
+    .breadcrumb span{color:#2a2a2a;}
+    .product-brand{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#555;margin-bottom:10px;}
+    .product-name{font-size:22px;font-weight:400;color:#fff;line-height:1.3;margin-bottom:20px;}
+    .product-price{font-size:20px;font-weight:400;color:#fff;margin-bottom:32px;padding-bottom:32px;border-bottom:0.5px solid #1a1a1a;}
+    .wish-row{margin-bottom:28px;}
+    .wish-btn{display:flex;align-items:center;gap:8px;background:transparent;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#555;transition:color 0.15s;padding:0;}
+    .wish-btn svg{width:16px;height:16px;fill:none;stroke:#555;stroke-width:1.5;transition:all 0.15s;}
+    .wish-btn:hover{color:#fff;}
+    .wish-btn:hover svg{stroke:#fff;}
+    .wish-btn.active{color:#fff;}
+    .wish-btn.active svg{fill:#fff;stroke:#fff;}
+    .section-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:12px;}
+    .size-guide{float:right;font-size:10px;color:#444;text-decoration:none;letter-spacing:1px;transition:color 0.15s;border-bottom:0.5px solid #2a2a2a;cursor:pointer;}
+    .size-guide:hover{color:#fff;border-bottom-color:#fff;}
+    .size-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;clear:both;}
+    .size-btn{min-width:52px;padding:10px 14px;font-size:11px;color:#555;border:0.5px solid #2a2a2a;background:transparent;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:all 0.15s;text-align:center;}
+    .size-btn:hover:not(.sold-out){color:#fff;border-color:#fff;}
+    .size-btn.active{color:#000;background:#fff;border-color:#fff;}
+    .size-btn.sold-out{color:#2a2a2a;border-color:#1a1a1a;cursor:not-allowed;text-decoration:line-through;}
+    .qty-row{display:flex;align-items:center;gap:0;margin-bottom:28px;}
+    .qty-btn{width:36px;height:36px;background:transparent;border:0.5px solid #2a2a2a;color:#777;font-size:16px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+    .qty-btn:hover{border-color:#fff;color:#fff;}
+    .qty-display{width:52px;height:36px;border-top:0.5px solid #2a2a2a;border-bottom:0.5px solid #2a2a2a;border-left:none;border-right:none;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;}
+    .selected-summary{background:#0a0a0a;border:0.5px solid #1a1a1a;padding:16px 20px;margin-bottom:28px;font-size:12px;color:#666;line-height:1.8;}
+    .selected-summary strong{color:#ccc;font-weight:400;}
+    .summary-price{float:right;color:#fff;}
+    .btn-group{display:flex;gap:10px;margin-bottom:32px;}
+    .btn-cart{flex:1;padding:15px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#fff;border:0.5px solid #fff;background:transparent;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:all 0.2s;}
+    .btn-cart:hover{background:#fff;color:#000;}
+    .btn-buy{flex:1;padding:15px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#000;border:0.5px solid #fff;background:#fff;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:300;transition:all 0.2s;}
+    .btn-buy:hover{background:transparent;color:#fff;}
+    .delivery-info{font-size:11px;color:#444;line-height:2;padding-top:20px;border-top:0.5px solid #111;}
+    .delivery-info .di-row{display:flex;gap:16px;}
+    .delivery-info .di-label{width:80px;color:#333;flex-shrink:0;}
+    .delivery-info .di-value{color:#666;}
+    .detail-section{padding:0 56px 80px;}
+    .detail-tabs{display:flex;border-bottom:0.5px solid #1a1a1a;margin-bottom:48px;}
+    .detail-tab{padding:16px 32px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#444;cursor:pointer;border-bottom:1px solid transparent;transition:color 0.15s,border-color 0.15s;}
+    .detail-tab.active{color:#fff;border-bottom-color:#fff;}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+    .desc-body{font-size:13px;line-height:2.2;color:#666;max-width:640px;}
+    .desc-body h4{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#444;margin:32px 0 12px;font-weight:400;}
+    .size-table{width:100%;max-width:560px;border-collapse:collapse;font-size:12px;}
+    .size-table th,.size-table td{padding:12px 16px;text-align:center;border-bottom:0.5px solid #1a1a1a;}
+    .size-table thead th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:400;}
+    .size-table tbody td{color:#666;}
+    .size-table tbody tr:hover td{color:#ccc;}
+  </style>
+</head>
+<body>
+<th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
+<div class="content-wrap">
+  <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
+
+  <div class="product-wrap">
+    <!-- 이미지 -->
+    <div class="img-section">
+      <div class="main-img">
+        <img th:if="${product.image != null}" th:src="${product.image}" th:alt="${product.name}" id="mainImg">
+        <div class="no-img" th:unless="${product.image != null}">No Image</div>
+        <span class="badge-new" th:if="${product.newItem}">New</span>
+      </div>
+      <div class="thumb-list">
+        <div class="thumb active" th:each="img, stat : ${product.images}"
+             th:attr="data-src=${img}"
+             onclick="switchImg(this.dataset.src, this)">
+          <img th:src="${img}" th:alt="${'이미지 ' + stat.index}">
+        </div>
+        <div class="thumb active" th:if="${#lists.isEmpty(product.images)}">
+          <div class="no-img-sm">1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 상품 정보 -->
+    <div class="info-section">
+      <div class="breadcrumb">
+        <a th:href="@{/shop}">Shop</a>
+        <span>›</span>
+        <a th:href="@{/shop(category=${product.category})}" th:text="${product.category}"></a>
+        <span>›</span>
+        <span style="color:#666;" th:text="${product.name}"></span>
+      </div>
+
+      <div class="product-brand" th:text="${product.brand}"></div>
+      <div class="product-name" th:text="${product.name}"></div>
+      <div class="product-price" th:text="${#numbers.formatInteger(product.price,1,'COMMA') + ' won'}"></div>
+
+      <div class="wish-row">
+        <button class="wish-btn" id="wishBtn" onclick="toggleWish()">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span id="wishText">위시리스트에 추가</span>
+        </button>
+      </div>
+
+      <div style="overflow:hidden;margin-bottom:12px;">
+        <div class="section-label" style="float:left;">사이즈 선택</div>
+        <span class="size-guide" onclick="switchTab(null,'size')">사이즈 가이드</span>
+      </div>
+      <div class="size-group">
+        <th:block th:if="${product.sizes != null and not #lists.isEmpty(product.sizes)}">
+          <button th:each="size : ${product.sizes}"
+                  th:classappend="${size.soldOut} ? 'sold-out'"
+                  class="size-btn"
+                  th:disabled="${size.soldOut}"
+                  th:text="${size.name}"
+                  onclick="selectSize(this)"></button>
+        </th:block>
+        <span th:unless="${product.sizes != null and not #lists.isEmpty(product.sizes)}"
+              style="font-size:11px;color:#444;letter-spacing:1px;">사이즈 정보 없음</span>
+      </div>
+
+      <div class="section-label">수량</div>
+      <div class="qty-row" style="margin-top:12px;">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <div class="qty-display" id="qtyDisplay">1</div>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+
+      <div class="selected-summary" id="summary">
+        <strong th:text="${product.name}"></strong> / <span id="summarySize">—</span><br>
+        수량 <strong id="summaryQty">1</strong>개
+        <span class="summary-price" id="summaryPrice" th:text="${#numbers.formatInteger(product.price,1,'COMMA') + ' won'}"></span>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn-cart" onclick="addCart()">장바구니</button>
+        <button class="btn-buy" onclick="buyNow()">바로 구매</button>
+      </div>
+
+      <div class="delivery-info">
+        <div class="di-row"><div class="di-label">배송</div><div class="di-value">무료배송 / 주문 후 1~3 영업일 내 발송</div></div>
+        <div class="di-row"><div class="di-label">교환/반품</div><div class="di-value">수령 후 7일 이내 가능</div></div>
+        <div class="di-row"><div class="di-label">문의</div><div class="di-value">고객센터 운영시간 내 답변 드립니다</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상세 탭 -->
+  <div class="detail-section">
+    <div class="detail-tabs">
+      <div class="detail-tab active" onclick="switchTab(this,'desc')">상품 설명</div>
+      <div class="detail-tab" onclick="switchTab(this,'size')">사이즈 가이드</div>
+    </div>
+    <div class="tab-content active" id="tab-desc">
+      <div class="desc-body" th:utext="${product.description ?: '상품 설명이 없습니다.'}">
+        <h4>About</h4>
+        <p>상품 설명이 없습니다.</p>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-size">
+      <table class="size-table">
+        <thead><tr><th>사이즈</th><th>어깨 (cm)</th><th>가슴 (cm)</th><th>소매 (cm)</th><th>총장 (cm)</th></tr></thead>
+        <tbody>
+          <tr th:each="sg : ${product.sizeGuide}">
+            <td th:text="${sg.size}"></td>
+            <td th:text="${sg.shoulder}"></td>
+            <td th:text="${sg.chest}"></td>
+            <td th:text="${sg.sleeve}"></td>
+            <td th:text="${sg.length}"></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:#333;margin-top:20px;letter-spacing:0.5px;">* 측정 방법에 따라 1~2cm 오차가 있을 수 있습니다.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script th:src="@{/js/common.js}"></script>
+<script th:inline="javascript">
+const price = [[${product.price}]];
+let qty = 1;
+let selectedSize = null;
+
+function selectSize(btn){
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedSize = btn.textContent.trim();
+  document.getElementById('summarySize').textContent = selectedSize;
+  updateSummary();
+}
+function changeQty(d){qty=Math.max(1,Math.min(99,qty+d));document.getElementById('qtyDisplay').textContent=qty;updateSummary();}
+function updateSummary(){document.getElementById('summaryQty').textContent=qty;document.getElementById('summaryPrice').textContent=(price*qty).toLocaleString()+' won';}
+function toggleWish(){const btn=document.getElementById('wishBtn'),txt=document.getElementById('wishText');btn.classList.toggle('active');if(btn.classList.contains('active')){txt.textContent='위시리스트에 추가됨';showToast('위시리스트에 추가되었습니다.');}else{txt.textContent='위시리스트에 추가';showToast('위시리스트에서 제거되었습니다.');}}
+function addCart(){if(!selectedSize){showToast('사이즈를 선택해주세요.');return;}showToast(`장바구니에 담겼습니다. (${selectedSize} / ${qty}개)`);}
+function buyNow(){if(!selectedSize){showToast('사이즈를 선택해주세요.');return;}location.href='/order';}
+function switchImg(src,thumb){document.getElementById('mainImg').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));thumb.classList.add('active');}
+function switchTab(el,name){
+  if(el){document.querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(!el){document.querySelectorAll('.detail-tab')[1].classList.add('active');document.querySelectorAll('.detail-tab')[0].classList.remove('active');}
+}
+</script>
+</body>
+</html>

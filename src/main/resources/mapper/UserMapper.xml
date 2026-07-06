@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gochuchamchi.mapper.UserMapper">
+
+    <resultMap id="userResultMap" type="UserDto">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="phone" column="phone"/>
+        <result property="birthdate" column="birthdate"/>
+        <result property="gender" column="gender"/>
+        <result property="nationality" column="nationality"/>
+        <result property="address" column="address"/>
+        <result property="role" column="role"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="userResultMap">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
+    <select id="findByEmail" resultMap="userResultMap">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
+    <select id="findById" resultMap="userResultMap">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <select id="existsByUsername" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM users WHERE username = #{username}
+    </select>
+
+    <select id="existsByEmail" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM users WHERE email = #{email}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, name, email, password, phone, birthdate,
+                           gender, nationality, address, role, created_at)
+        VALUES (#{username}, #{name}, #{email}, #{password}, #{phone}, #{birthdate},
+                #{gender}, #{nationality}, #{address}, 'user', NOW())
+    </insert>
+
+    <!-- 회원정보 변경: email/birthdate/gender/nationality/address 포함 -->
+    <update id="update">
+        UPDATE users
+        SET name        = #{name},
+            email       = #{email},
+            phone       = #{phone},
+            birthdate   = #{birthdate},
+            gender      = #{gender},
+            nationality = #{nationality},
+            address     = #{address},
+            updated_at  = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users SET password = #{password}, updated_at = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>
