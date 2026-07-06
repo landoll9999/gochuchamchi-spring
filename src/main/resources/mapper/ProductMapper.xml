@@ -53,9 +53,8 @@
     UPDATE products SET view_count = view_count + 1 WHERE id = #{id}
   </update>
 
-</mapper>
-
   <update id="delete">
     UPDATE products SET active = 0 WHERE id = #{id}
   </update>
 
+</mapper>
