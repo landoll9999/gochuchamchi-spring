@@ -4,12 +4,12 @@
 <mapper namespace="com.gochuchamchi.mapper.NoticeMapper">
 
   <resultMap id="noticeResultMap" type="NoticeDto">
-    <id property="id"        column="id"/>
-    <result property="title"     column="title"/>
-    <result property="content"   column="content"/>
-    <result property="author"    column="author"/>
-    <result property="pinned"    column="pinned"/>    <!-- is_pinned → pinned -->
-    <result property="views"     column="views"/>
+    <id property="id" column="id"/>
+    <result property="title" column="title"/>
+    <result property="content" column="content"/>
+    <result property="author" column="author"/>
+    <result property="pinned" column="pinned"/>
+    <result property="views" column="views"/>
     <result property="createdAt" column="created_at"/>
   </resultMap>
 
@@ -23,7 +23,7 @@
           <otherwise>AND (title LIKE CONCAT('%',#{keyword},'%') OR content LIKE CONCAT('%',#{keyword},'%'))</otherwise>
         </choose>
       </if>
-      <if test="period == 'week'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)</if>
+      <if test="period == 'week'">AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)</if>
       <if test="period == 'month'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)</if>
       <if test="period == 'year'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)</if>
     </where>
@@ -45,7 +45,7 @@
           <otherwise>AND (title LIKE CONCAT('%',#{keyword},'%') OR content LIKE CONCAT('%',#{keyword},'%'))</otherwise>
         </choose>
       </if>
-      <if test="period == 'week'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)</if>
+      <if test="period == 'week'">AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)</if>
       <if test="period == 'month'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)</if>
       <if test="period == 'year'">AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)</if>
     </where>
@@ -54,5 +54,23 @@
   <update id="incrementViews">
     UPDATE notices SET views = views + 1 WHERE id = #{id}
   </update>
+
+  <!-- 관리자용 -->
+  <select id="findAllForAdmin" resultMap="noticeResultMap">
+    SELECT * FROM notices ORDER BY pinned DESC, created_at DESC
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO notices (title, content, author, pinned, created_at)
+    VALUES (#{title}, #{content}, #{author}, #{pinned}, NOW())
+  </insert>
+
+  <update id="update">
+    UPDATE notices SET title=#{title}, content=#{content}, pinned=#{pinned} WHERE id=#{id}
+  </update>
+
+  <delete id="delete">
+    DELETE FROM notices WHERE id=#{id}
+  </delete>
 
 </mapper>

@@ -54,3 +54,8 @@
   </update>
 
 </mapper>
+
+  <update id="delete">
+    UPDATE products SET active = 0 WHERE id = #{id}
+  </update>
+

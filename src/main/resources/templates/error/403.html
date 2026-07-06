@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>접근 권한 없음</title>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body>
+<th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
+<div class="content-wrap">
+  <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
+  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 64px);flex-direction:column;gap:24px;">
+    <div style="font-family:'Permanent Marker',cursive;font-size:96px;color:#e0e0e0;">403</div>
+    <div style="font-size:16px;color:#aaa;letter-spacing:2px;">접근 권한이 없습니다.</div>
+    <a th:href="@{/}" style="font-size:13px;color:#111;text-decoration:none;border-bottom:1px solid #111;padding-bottom:2px;">← 홈으로 돌아가기</a>
+  </div>
+</div>
+</body>
+</html>

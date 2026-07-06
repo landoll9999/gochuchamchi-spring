@@ -9,8 +9,9 @@ import java.util.List;
 public interface ProductMapper {
     List<ProductDto> findAll(@Param("offset") int offset, @Param("limit") int limit,
                              @Param("sort") String sort, @Param("category") String category);
-    ProductDto findById(@Param("id") Long id);
+    ProductDto findById(Long id);
     int countAll(@Param("category") String category);
     void insert(ProductDto product);
-    void incrementViews(@Param("id") Long id);
+    void incrementViews(Long id);
+    void delete(Long id);
 }
