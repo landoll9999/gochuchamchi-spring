@@ -21,7 +21,7 @@
 <th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
 <div class="content-wrap">
   <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
-  <div class="page-wrap" style="max-width:720px;">
+  <div class="page-wrap" style="max-width:720px;margin:0 auto;">
     <div class="page-title">New Product <span class="title-main">상품 등록</span></div>
     <form th:action="@{/shop/register}" method="post" enctype="multipart/form-data" id="productForm">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
