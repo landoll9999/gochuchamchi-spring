@@ -1,9 +1,10 @@
 package com.gochuchamchi.controller;
+
 import com.gochuchamchi.dto.ProductDto;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.UserMapper;
-import com.gochuchamchi.service.S3Service;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,18 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequestMapping("/shop")
+@RequiredArgsConstructor
 public class ShopController {
 
     private final ProductMapper productMapper;
     private final UserMapper userMapper;
-    private final S3Service s3Service;
     private static final int PAGE_SIZE = 12;
-
-    public ShopController(ProductMapper productMapper, UserMapper userMapper, S3Service s3Service) {
-        this.productMapper = productMapper;
-        this.userMapper = userMapper;
-        this.s3Service = s3Service;
-    }
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "newest") String sort,
@@ -62,12 +57,9 @@ public class ShopController {
     @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     public String register(@ModelAttribute ProductDto product,
                            @RequestParam(required = false) MultipartFile imageFile,
-                           @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+                           @AuthenticationPrincipal UserDetails userDetails) {
         UserDto seller = userMapper.findByUsername(userDetails.getUsername());
         product.setSellerId(seller.getId());
-        if (imageFile != null && !imageFile.isEmpty()) {
-            product.setImage(s3Service.upload(imageFile));
-        }
         productMapper.insert(product);
         return "redirect:/shop";
     }
