@@ -38,16 +38,3 @@ jobs:
           aws s3 cp target/gochuchamchi-0.0.1-SNAPSHOT.jar \
             s3://gochuchamchi-images/deploy/gochuchamchi-latest.jar
 
-      # 6. EC2에서 자동 배포 (SSM)
-      - name: Deploy to EC2 via SSM
-        run: |
-          aws ssm send-command \
-            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "sudo systemctl stop gochuchamchi",
-              "aws s3 cp s3://gochuchamchi-images/deploy/gochuchamchi-latest.jar /home/ssm-user/app.jar",
-              "sudo systemctl start gochuchamchi",
-              "echo 배포 완료!"
-            ]' \
-            --region ap-northeast-2
