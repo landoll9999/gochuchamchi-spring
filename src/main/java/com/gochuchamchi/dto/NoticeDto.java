@@ -1,4 +1,4 @@
-﻿package com.gochuchamchi.dto;
+package com.gochuchamchi.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
