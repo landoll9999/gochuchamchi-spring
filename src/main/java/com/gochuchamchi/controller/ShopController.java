@@ -1,66 +1,42 @@
-package com.gochuchamchi.controller;
+@PostMapping("/register")
+@PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+public String register(@RequestParam String brand,
+                       @RequestParam String name,
+                       @RequestParam String category,
+                       @RequestParam int price,
+                       @RequestParam(defaultValue = "0") int stock,
+                       @RequestParam(required = false) String description,
+                       @RequestParam(required = false) MultipartFile imageFile,
+                       @RequestParam(required = false) List<String> sizes,
+                       @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+    UserDto seller = userMapper.findByUsername(userDetails.getUsername());
 
-import com.gochuchamchi.dto.ProductDto;
-import com.gochuchamchi.dto.UserDto;
-import com.gochuchamchi.mapper.ProductMapper;
-import com.gochuchamchi.mapper.UserMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+    ProductDto product = new ProductDto();
+    product.setSellerId(seller.getId());
+    product.setBrand(brand);
+    product.setName(name);
+    product.setCategory(category);
+    product.setPrice(price);
+    product.setStock(stock);
+    product.setDescription(description);
 
-@Controller
-@RequestMapping("/shop")
-@RequiredArgsConstructor
-public class ShopController {
+    if (imageFile != null && !imageFile.isEmpty()) {
+        product.setImage(s3Service.upload(imageFile));
+    }
+    productMapper.insert(product);
 
-    private final ProductMapper productMapper;
-    private final UserMapper userMapper;
-    private static final int PAGE_SIZE = 12;
-
-    @GetMapping
-    public String list(@RequestParam(defaultValue = "newest") String sort,
-                       @RequestParam(defaultValue = "") String category,
-                       @RequestParam(defaultValue = "1") int page,
-                       Model model) {
-        int offset = (page - 1) * PAGE_SIZE;
-        int total = productMapper.countAll(category);
-        model.addAttribute("products", productMapper.findAll(offset, PAGE_SIZE, sort, category));
-        model.addAttribute("totalCount", total);
-        model.addAttribute("totalPages", (int) Math.ceil((double) total / PAGE_SIZE));
-        model.addAttribute("currentPage", page);
-        model.addAttribute("sort", sort);
-        model.addAttribute("category", category);
-        return "shop/list";
+    if (sizes != null && !sizes.isEmpty()) {
+        List<ProductSizeDto> sizeList = new ArrayList<>();
+        for (int i = 0; i < sizes.size(); i++) {
+            ProductSizeDto sd = new ProductSizeDto();
+            sd.setProductId(product.getId());
+            sd.setSizeName(sizes.get(i));
+            sd.setStock(0);
+            sd.setSortOrder(i);
+            sizeList.add(sd);
+        }
+        productSizeMapper.insertSizes(sizeList);
     }
 
-    @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        ProductDto product = productMapper.findById(id);
-        if (product == null) return "redirect:/shop";
-        productMapper.incrementViews(id);
-        model.addAttribute("product", product);
-        return "shop/detail";
-    }
-
-    @GetMapping("/register-form")
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public String registerForm() {
-        return "shop/register";
-    }
-
-    @PostMapping("/register")
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public String register(@ModelAttribute ProductDto product,
-                           @RequestParam(required = false) MultipartFile imageFile,
-                           @AuthenticationPrincipal UserDetails userDetails) {
-        UserDto seller = userMapper.findByUsername(userDetails.getUsername());
-        product.setSellerId(seller.getId());
-        productMapper.insert(product);
-        return "redirect:/shop";
-    }
+    return "redirect:/shop";
 }
