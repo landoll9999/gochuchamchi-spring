@@ -1,7 +1,7 @@
-package com.gochuchamchi.dto;
-
+﻿package com.gochuchamchi.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 public class NoticeDto {
@@ -9,7 +9,12 @@ public class NoticeDto {
     private String title;
     private String content;
     private String author;
-    private boolean pinned;       // isPinned → pinned로 변경 (Lombok getter 충돌 방지)
+    private boolean pinned;
     private int views;
     private LocalDateTime createdAt;
+
+    public String getCreatedAtStr() {
+        if (createdAt == null) return "";
+        return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
 }
