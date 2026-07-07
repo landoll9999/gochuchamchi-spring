@@ -36,10 +36,19 @@
 </div>
 
 <script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/common.js}"></script>
 <script>
+window.onload = function() {
+  if (document.cookie.includes('visited=true')) {
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('main').classList.add('visible');
+  }
+}
+
 function enterSite(){
   document.getElementById('splash').classList.add('hidden');
   document.getElementById('main').classList.add('visible');
+  document.cookie = "visited=true; max-age=86400; path=/";
 }
 </script>
 </body>
