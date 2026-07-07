@@ -47,18 +47,19 @@ public class ShopController {
         return "shop/detail";
     }
 
+    @GetMapping("/register-form")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    public String registerForm() {
+        return "shop/register";
+    }
+
     @PostMapping("/register")
-    @PreAuthorize("hasRole('SELLER')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     public String register(@ModelAttribute ProductDto product,
                            @RequestParam(required = false) MultipartFile imageFile,
                            @AuthenticationPrincipal UserDetails userDetails) {
-        // seller_id 세팅 (누락 시 DB NOT NULL 오류)
         UserDto seller = userMapper.findByUsername(userDetails.getUsername());
         product.setSellerId(seller.getId());
-
-        // 이미지 처리 (추후 S3 연동 시 여기에 업로드 로직 추가)
-        // if (imageFile != null && !imageFile.isEmpty()) { ... }
-
         productMapper.insert(product);
         return "redirect:/shop";
     }

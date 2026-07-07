@@ -13,8 +13,6 @@ public interface NoticeMapper {
     NoticeDto findById(Long id);
     int countAll(@Param("keyword") String keyword, @Param("type") String type, @Param("period") String period);
     void incrementViews(Long id);
-
-    // 관리자용
     List<NoticeDto> findAllForAdmin();
     void insert(NoticeDto notice);
     void update(NoticeDto notice);

@@ -14,8 +14,6 @@ public interface UserMapper {
     void insert(UserDto user);
     void update(UserDto user);
     void updatePassword(@Param("id") Long id, @Param("password") String password);
-
-    // 관리자용
     List<UserDto> findAllForAdmin();
     void updateRole(@Param("id") Long id, @Param("role") String role);
 }

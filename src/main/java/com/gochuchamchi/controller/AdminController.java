@@ -1,8 +1,6 @@
 package com.gochuchamchi.controller;
 
 import com.gochuchamchi.dto.NoticeDto;
-import com.gochuchamchi.dto.ProductDto;
-import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.NoticeMapper;
 import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.UserMapper;
@@ -27,7 +25,6 @@ public class AdminController {
         this.productMapper = productMapper;
     }
 
-    // 대시보드
     @GetMapping
     public String dashboard(Model model) {
         model.addAttribute("userCount", userMapper.findAllForAdmin().size());
@@ -36,7 +33,6 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-    // 회원 관리
     @GetMapping("/users")
     public String users(Model model) {
         model.addAttribute("users", userMapper.findAllForAdmin());
@@ -52,7 +48,6 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // 공지사항 관리
     @GetMapping("/notices")
     public String notices(Model model) {
         model.addAttribute("notices", noticeMapper.findAllForAdmin());
@@ -93,7 +88,6 @@ public class AdminController {
         return "redirect:/admin/notices";
     }
 
-    // 상품 관리
     @GetMapping("/products")
     public String products(Model model) {
         model.addAttribute("products", productMapper.findAll(0, 100, "newest", ""));

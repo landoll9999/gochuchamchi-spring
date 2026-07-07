@@ -68,7 +68,7 @@
     <div class="nav-item"><a href="#">Support</a></div>
 
     <!-- 관리자 메뉴 -->
-    <div th:if="${#authentication != null and #authentication.authorities.toString().contains('ROLE_ADMIN')}">
+    <div sec:authorize="hasRole('ADMIN')">
       <div class="nav-divider"></div>
       <div class="nav-item"><a th:href="@{/admin}" style="color:#e74c3c;">Admin</a></div>
     </div>

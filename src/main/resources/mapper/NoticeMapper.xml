@@ -55,7 +55,6 @@
     UPDATE notices SET views = views + 1 WHERE id = #{id}
   </update>
 
-  <!-- 관리자용 -->
   <select id="findAllForAdmin" resultMap="noticeResultMap">
     SELECT * FROM notices ORDER BY pinned DESC, created_at DESC
   </select>

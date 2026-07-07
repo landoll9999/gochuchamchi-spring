@@ -4,31 +4,21 @@
 <th:block th:fragment="sidebar">
 <aside style="width:240px;min-width:240px;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;background:#111;z-index:10;">
   <div style="padding:28px 28px 22px;border-bottom:1px solid #222;">
-    <a th:href="@{/admin}" style="font-family:'Permanent Marker',cursive;font-size:18px;color:#fff;text-decoration:none;">Admin</a>
-    <div style="font-size:10px;letter-spacing:2px;color:#555;margin-top:4px;">gochuchamchi</div>
+    <a th:href="@{/admin}" style="font-family:'Permanent Marker',cursive;font-size:20px;color:#fff;text-decoration:none;">Admin</a>
+    <div style="font-size:10px;letter-spacing:2px;color:#555;margin-top:4px;text-transform:uppercase;">gochuchamchi</div>
   </div>
-  <nav style="flex:1;padding:10px 0;">
-    <a th:href="@{/admin}" style="display:flex;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
-       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">
-      대시보드
-    </a>
-    <a th:href="@{/admin/users}" style="display:flex;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
-       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">
-      회원 관리
-    </a>
-    <a th:href="@{/admin/notices}" style="display:flex;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
-       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">
-      공지사항 관리
-    </a>
-    <a th:href="@{/admin/products}" style="display:flex;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
-       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">
-      상품 관리
-    </a>
+  <nav style="flex:1;padding:8px 0;">
+    <a th:href="@{/admin}" style="display:block;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
+       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">대시보드</a>
+    <a th:href="@{/admin/users}" style="display:block;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
+       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">회원 관리</a>
+    <a th:href="@{/admin/notices}" style="display:block;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
+       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">공지사항 관리</a>
+    <a th:href="@{/admin/products}" style="display:block;padding:14px 28px;font-size:13px;color:#888;text-decoration:none;transition:all 0.15s;"
+       onmouseover="this.style.color='#fff';this.style.background='#1a1a1a'" onmouseout="this.style.color='#888';this.style.background='transparent'">상품 관리</a>
     <div style="height:1px;background:#222;margin:8px 0;"></div>
-    <a th:href="@{/}" style="display:flex;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:#555;text-decoration:none;transition:all 0.15s;"
-       onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">
-      ← 사이트로 돌아가기
-    </a>
+    <a th:href="@{/}" style="display:block;padding:14px 28px;font-size:13px;color:#555;text-decoration:none;transition:color 0.15s;"
+       onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">← 사이트로 돌아가기</a>
   </nav>
 </aside>
 </th:block>

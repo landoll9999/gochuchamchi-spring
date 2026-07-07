@@ -16,15 +16,13 @@
     table{width:100%;border-collapse:collapse;background:#fff;margin-top:24px;}
     thead tr{border-bottom:2px solid #111;}
     thead th{padding:14px 16px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;font-weight:500;text-align:left;}
-    tbody tr{border-bottom:1px solid #f0f0f0;transition:background 0.15s;}
+    tbody tr{border-bottom:1px solid #f0f0f0;}
     tbody tr:hover{background:#fafafa;}
     tbody td{padding:16px;font-size:14px;color:#555;}
-    .pin-badge{display:inline-block;font-size:10px;letter-spacing:1px;background:#111;color:#fff;padding:2px 7px;margin-right:8px;}
-    .btn-sm{padding:7px 14px;font-size:12px;text-transform:uppercase;letter-spacing:1px;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+    .pin-badge{display:inline-block;font-size:10px;background:#111;color:#fff;padding:2px 7px;margin-right:8px;}
+    .btn-sm{padding:7px 14px;font-size:12px;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
     .btn-edit{background:#f0f0f0;color:#333;}
-    .btn-edit:hover{background:#e0e0e0;}
     .btn-del{background:#fee2e2;color:#dc2626;}
-    .btn-del:hover{background:#fecaca;}
   </style>
 </head>
 <body>
@@ -37,16 +35,7 @@
   <div class="main">
     <div class="msg-success" th:if="${success}" th:text="${success}"></div>
     <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>제목</th>
-          <th>작성자</th>
-          <th>조회수</th>
-          <th>작성일</th>
-          <th>관리</th>
-        </tr>
-      </thead>
+      <thead><tr><th>ID</th><th>제목</th><th>작성자</th><th>조회수</th><th>작성일</th><th>관리</th></tr></thead>
       <tbody>
         <tr th:each="n : ${notices}">
           <td th:text="${n.id}"></td>
