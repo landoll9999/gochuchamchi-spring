@@ -4,7 +4,13 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <th:block th:fragment="sidebar">
-<aside>
+  <!-- 햄버거 버튼 -->
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+<!-- 오버레이 -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside id="sidebar">
   <div class="sidebar-brand">
     <a th:href="@{/}">gochuchamchi</a>
   </div>
@@ -91,6 +97,16 @@
     <a th:href="@{/auth/register}">Register</a>
   </div>
 </div>
+<script>
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
+  hamburger.classList.toggle('active');
+}
+</script>
 </th:block>
 </body>
 </html>
