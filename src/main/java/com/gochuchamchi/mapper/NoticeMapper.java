@@ -10,7 +10,11 @@ public interface NoticeMapper {
     List<NoticeDto> findAll(@Param("offset") int offset, @Param("limit") int limit,
                             @Param("keyword") String keyword, @Param("type") String type,
                             @Param("period") String period);
-    NoticeDto findById(@Param("id") Long id);
+    NoticeDto findById(Long id);
     int countAll(@Param("keyword") String keyword, @Param("type") String type, @Param("period") String period);
-    void incrementViews(@Param("id") Long id);
+    void incrementViews(Long id);
+    List<NoticeDto> findAllForAdmin();
+    void insert(NoticeDto notice);
+    void update(NoticeDto notice);
+    void delete(Long id);
 }

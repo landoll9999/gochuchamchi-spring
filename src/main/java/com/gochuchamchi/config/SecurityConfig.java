@@ -1,7 +1,6 @@
 package com.gochuchamchi.config;
 
 import com.gochuchamchi.service.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -13,11 +12,14 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // @PreAuthorize 사용을 위해 추가
-@RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -29,14 +31,15 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/**", "/shop/**", "/notice/**",
-                                 "/css/**", "/js/**", "/images/**").permitAll()
+                                 "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/mypage/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/auth/login")
                 .loginProcessingUrl("/auth/login")
-                .usernameParameter("username")   // 폼 파라미터명과 일치
+                .usernameParameter("username")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
                 .failureUrl("/auth/login?error=true")
@@ -49,8 +52,10 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/error/403")
+            )
             .userDetailsService(userDetailsService);
-
         return http.build();
     }
 }

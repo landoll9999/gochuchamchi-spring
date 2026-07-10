@@ -4,14 +4,18 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <th:block th:fragment="sidebar">
-<aside>
+  <!-- 햄버거 버튼 -->
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+<!-- 오버레이 -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside id="sidebar">
   <div class="sidebar-brand">
     <a th:href="@{/}">gochuchamchi</a>
   </div>
   <nav>
-    <div class="nav-item">
-      <a th:href="@{/shop}">New Arrivals</a>
-    </div>
+    <div class="nav-item"><a th:href="@{/shop}">New Arrivals</a></div>
     <div class="nav-divider"></div>
     <div class="nav-item" onclick="toggleNav(this)">
       <span>Tops &amp; Shirts <svg viewBox="0 0 10 6"><polyline points="1,1 5,5 9,1"/></svg></span>
@@ -19,7 +23,6 @@
         <a th:href="@{/shop(category='tees')}">Tees</a>
         <a th:href="@{/shop(category='button-ups')}">Button-ups</a>
         <a th:href="@{/shop(category='jerseys')}">Jerseys</a>
-        <a th:href="@{/shop(category='thermals')}">Thermals</a>
         <a th:href="@{/shop(category='tops')}">All</a>
       </div>
     </div>
@@ -28,7 +31,6 @@
       <div class="sub-menu">
         <a th:href="@{/shop(category='hoodies')}">Hoodies</a>
         <a th:href="@{/shop(category='zip-ups')}">Zip-ups</a>
-        <a th:href="@{/shop(category='crews')}">Crews</a>
         <a th:href="@{/shop(category='sweatpants')}">Sweatpants</a>
         <a th:href="@{/shop(category='sweats')}">All</a>
       </div>
@@ -37,9 +39,7 @@
       <span>Bottoms <svg viewBox="0 0 10 6"><polyline points="1,1 5,5 9,1"/></svg></span>
       <div class="sub-menu">
         <a th:href="@{/shop(category='pants')}">Pants</a>
-        <a th:href="@{/shop(category='shorts')}">Shorts</a>
         <a th:href="@{/shop(category='denim')}">Denim</a>
-        <a th:href="@{/shop(category='cargos')}">Cargos</a>
         <a th:href="@{/shop(category='bottoms')}">All</a>
       </div>
     </div>
@@ -48,7 +48,6 @@
       <div class="sub-menu">
         <a th:href="@{/shop(category='jackets')}">Jackets</a>
         <a th:href="@{/shop(category='coats')}">Coats</a>
-        <a th:href="@{/shop(category='vests')}">Vests</a>
         <a th:href="@{/shop(category='outerwear')}">All</a>
       </div>
     </div>
@@ -57,7 +56,6 @@
       <div class="sub-menu">
         <a th:href="@{/shop(category='caps')}">Caps</a>
         <a th:href="@{/shop(category='beanies')}">Beanies</a>
-        <a th:href="@{/shop(category='buckets')}">Buckets</a>
         <a th:href="@{/shop(category='headwear')}">All</a>
       </div>
     </div>
@@ -66,26 +64,32 @@
       <div class="sub-menu">
         <a th:href="@{/shop(category='bags')}">Bags</a>
         <a th:href="@{/shop(category='belts')}">Belts</a>
-        <a th:href="@{/shop(category='gear')}">Gear</a>
         <a th:href="@{/shop(category='accessories')}">All</a>
       </div>
     </div>
     <div class="nav-divider"></div>
     <div class="nav-item"><a href="#">Lookbook</a></div>
-    <div class="nav-item">
-      <a th:href="@{/notice}">Notice</a>
-    </div>
+    <div class="nav-item"><a th:href="@{/notice}">Notice</a></div>
     <div class="nav-item"><a href="#">About</a></div>
     <div class="nav-item"><a href="#">Support</a></div>
+
+    <!-- 관리자 메뉴 -->
+    <div sec:authorize="hasRole('ADMIN')">
+      <div class="nav-divider"></div>
+      <div class="nav-item"><a th:href="@{/admin}" style="color:#e74c3c;">Admin</a></div>
+    </div>
   </nav>
 </aside>
 
-<!-- 우측 상단 인증 - th:if로 처리 -->
+<!-- 우측 상단 인증 -->
 <div class="corner-auth">
   <div th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
     <a th:href="@{/mypage}">Mypage</a>
     <div class="c-divider"></div>
-    <a th:href="@{/auth/logout}">Logout</a>
+    <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <button type="submit" style="background:none;border:none;cursor:pointer;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#aaa;font-family:'Noto Sans KR',sans-serif;padding:0;transition:color 0.15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#aaa'">Logout</button>
+    </form>
   </div>
   <div th:if="${#authentication == null or #authentication.name == 'anonymousUser'}">
     <a th:href="@{/auth/login}">Login</a>
@@ -93,6 +97,16 @@
     <a th:href="@{/auth/register}">Register</a>
   </div>
 </div>
+<script>
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
+  hamburger.classList.toggle('active');
+}
+</script>
 </th:block>
 </body>
 </html>

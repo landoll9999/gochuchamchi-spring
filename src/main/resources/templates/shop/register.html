@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>상품 등록 — gochuchamchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    .size-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+    .size-tag{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid #111;font-size:13px;font-family:'Noto Sans KR',sans-serif;}
+    .size-tag button{background:none;border:none;cursor:pointer;font-size:16px;color:#aaa;line-height:1;padding:0;}
+    .size-tag button:hover{color:#111;}
+    .size-add-row{display:flex;gap:8px;align-items:center;}
+    .size-add-input{border:none;border-bottom:1.5px solid #e0e0e0;padding:8px 0;font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;width:140px;background:transparent;}
+    .size-add-input:focus{border-bottom-color:#111;}
+    .size-add-btn{padding:8px 18px;font-size:12px;letter-spacing:1px;text-transform:uppercase;background:#111;color:#fff;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+  </style>
+</head>
+<body>
+<th:block th:replace="~{layout/sidebar :: sidebar}"></th:block>
+<div class="content-wrap">
+  <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
+  <div class="page-wrap" style="max-width:720px;margin:0 auto;">
+    <div class="page-title">New Product <span class="title-main">상품 등록</span></div>
+    <form th:action="@{/shop/register}" method="post" enctype="multipart/form-data" id="productForm">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <div class="row-2">
+        <div class="form-group">
+          <label>브랜드 *</label>
+          <input type="text" name="brand" class="form-control" placeholder="브랜드명" required>
+        </div>
+        <div class="form-group">
+          <label>상품명 *</label>
+          <input type="text" name="name" class="form-control" placeholder="상품명" required>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="form-group">
+          <label>카테고리 *</label>
+          <select name="category" id="category" class="form-control" required style="cursor:pointer;" onchange="loadDefaultSizes(this.value)">
+            <option value="">선택</option>
+            <option value="tees">Tees</option>
+            <option value="button-ups">Button-ups</option>
+            <option value="jerseys">Jerseys</option>
+            <option value="tops">Tops (All)</option>
+            <option value="hoodies">Hoodies</option>
+            <option value="zip-ups">Zip-ups</option>
+            <option value="crews">Crews</option>
+            <option value="sweatpants">Sweatpants</option>
+            <option value="sweats">Sweats (All)</option>
+            <option value="pants">Pants</option>
+            <option value="shorts">Shorts</option>
+            <option value="denim">Denim</option>
+            <option value="cargos">Cargos</option>
+            <option value="bottoms">Bottoms (All)</option>
+            <option value="jackets">Jackets</option>
+            <option value="coats">Coats</option>
+            <option value="vests">Vests</option>
+            <option value="outerwear">Outerwear (All)</option>
+            <option value="caps">Caps</option>
+            <option value="beanies">Beanies</option>
+            <option value="buckets">Buckets</option>
+            <option value="headwear">Headwear (All)</option>
+            <option value="bags">Bags</option>
+            <option value="belts">Belts</option>
+            <option value="accessories">Accessories (All)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>가격 (원) *</label>
+          <input type="number" name="price" class="form-control" placeholder="0" min="0" max="2147483647" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>재고 수량</label>
+        <input type="number" name="stock" class="form-control" value="0" min="0" max="2147483647">
+      </div>
+      <div class="form-group">
+        <label>사이즈</label>
+        <div class="size-tags" id="sizeTags"></div>
+        <div class="size-add-row">
+          <input type="text" id="sizeInput" class="size-add-input" placeholder="예: M, 55, FREE">
+          <button type="button" class="size-add-btn" onclick="addSize()">+ 추가</button>
+        </div>
+        <div id="sizeHiddenInputs"></div>
+      </div>
+      <div class="form-group">
+        <label>상품 이미지</label>
+        <input type="file" name="imageFile" accept="image/*" class="form-control" style="cursor:pointer;" onchange="previewImg(this)">
+        <div id="imgPreview" style="display:none;margin-top:12px;">
+          <img id="previewImg" style="max-width:200px;max-height:200px;object-fit:cover;border:1px solid #e0e0e0;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>상품 설명</label>
+        <textarea name="description" class="form-control" rows="4" style="resize:vertical;padding-top:12px;" placeholder="상품 설명을 입력해주세요."></textarea>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <button type="submit" class="btn btn-fill">등록하기</button>
+        <a th:href="@{/shop}" class="txt-link">← 취소</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script th:src="@{/js/common.js}"></script>
+<script>
+const clothingCats = ['tees','button-ups','jerseys','tops','hoodies','zip-ups','crews','sweatpants','sweats','pants','shorts','denim','cargos','bottoms','jackets','coats','vests','outerwear','caps','beanies','buckets','headwear'];
+const accessoryCats = ['bags','belts','accessories'];
+let sizes = [];
+
+function loadDefaultSizes(category) {
+  if (clothingCats.includes(category)) {
+    sizes = ['XS','S','M','L','XL','XXL','ONE SIZE'];
+  } else if (accessoryCats.includes(category)) {
+    sizes = ['FREE SIZE'];
+  } else {
+    sizes = [];
+  }
+  renderSizes();
+}
+
+function addSize() {
+  const input = document.getElementById('sizeInput');
+  const val = input.value.trim().toUpperCase();
+  if (!val || sizes.includes(val)) { input.value = ''; return; }
+  sizes.push(val);
+  input.value = '';
+  renderSizes();
+}
+
+function removeSize(idx) {
+  sizes.splice(idx, 1);
+  renderSizes();
+}
+
+function renderSizes() {
+  document.getElementById('sizeTags').innerHTML = sizes.map((s, i) =>
+    `<div class="size-tag">${s}<button type="button" onclick="removeSize(${i})">×</button></div>`
+  ).join('');
+  document.getElementById('sizeHiddenInputs').innerHTML = sizes.map(s =>
+    `<input type="hidden" name="sizes" value="${s}">`
+  ).join('');
+}
+
+document.getElementById('sizeInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); addSize(); }
+});
+
+function previewImg(input) {
+  if (input.files && input.files[0]) {
+    const r = new FileReader();
+    r.onload = e => {
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('imgPreview').style.display = 'block';
+    };
+    r.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+</body>
+</html>

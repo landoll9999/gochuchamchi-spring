@@ -94,3 +94,25 @@ nav::-webkit-scrollbar{width:0;}
 .pagination a,.pagination span{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;font-size:13px;color:#aaa;text-decoration:none;transition:color 0.15s;border:1px solid transparent;}
 .pagination a:hover{color:#111;border-color:#e0e0e0;}
 .pagination .current{color:#fff;background:#111;border-color:#111;}
+
+/* ===== 햄버거 메뉴 버튼 ===== */
+.hamburger{display:none;position:fixed;top:16px;left:16px;z-index:200;background:#fff;border:1.5px solid #e0e0e0;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:5px;padding:8px;}
+.hamburger span{display:block;width:20px;height:1.5px;background:#111;transition:all 0.3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(4px,4px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px);}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;}
+.sidebar-overlay.active{display:block;}
+
+/* ===== 모바일 반응형 ===== */
+@media (max-width: 768px) {
+  .hamburger{display:flex;}
+  aside{transform:translateX(-100%);transition:transform 0.3s ease;z-index:100;}
+  aside.open{transform:translateX(0);}
+  .content-wrap{margin-left:0;}
+  .corner-auth{top:64px;}
+  .topbar{padding:0 16px 0 60px;}
+  .page-wrap{padding:40px 24px;}
+  .product-grid{grid-template-columns:repeat(2,1fr) !important;gap:24px 16px !important;}
+  .row-2{grid-template-columns:1fr !important;}
+}

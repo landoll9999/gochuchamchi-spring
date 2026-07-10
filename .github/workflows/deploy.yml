@@ -32,7 +32,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. S3에 jar 업로드
+     # 5. S3에 jar 업로드
       - name: Upload jar to S3
         run: |
           aws s3 cp target/gochuchamchi-0.0.1-SNAPSHOT.jar \

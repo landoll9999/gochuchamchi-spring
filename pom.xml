@@ -28,7 +28,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>s3</artifactId>
+    <version>2.25.6</version>
+</dependency>
     <!-- Thymeleaf (JSP 대신 서버사이드 템플릿) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

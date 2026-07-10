@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,8 +31,12 @@
 <div class="content-wrap">
   <th:block th:replace="~{layout/topbar :: topbar}"></th:block>
   <div class="notice-wrap">
-    <div class="page-title" style="text-align:center;">
-      공지사항 <span class="title-main">Notice</span>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:52px;">
+      <div class="page-title" style="margin-bottom:0;">
+        공지사항 <span class="title-main">Notice</span>
+      </div>
+      <a sec:authorize="hasRole('ADMIN')"
+         th:href="@{/admin/notices/new}" class="btn btn-fill">+ 공지사항 등록</a>
     </div>
 
     <table class="notice-table">

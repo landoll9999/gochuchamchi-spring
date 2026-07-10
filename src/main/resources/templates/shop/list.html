@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +41,11 @@
   <div class="shop-wrap">
     <div class="shop-header">
       <div class="shop-title">Shop</div>
-      <div class="total-count">TOTAL <strong th:text="${totalCount}">0</strong> ITEMS</div>
+      <div style="display:flex;align-items:center;gap:24px;">
+        <div class="total-count">TOTAL <strong th:text="${totalCount}">0</strong> ITEMS</div>
+        <a sec:authorize="hasAnyRole('ADMIN', 'SELLER')"
+           th:href="@{/shop/register-form}" class="btn btn-fill">+ 상품 등록</a>
+      </div>
     </div>
     <div class="sort-bar">
       <a th:href="@{/shop(sort='newest')}" th:classappend="${sort=='newest'} ? 'active'">신상품</a>
