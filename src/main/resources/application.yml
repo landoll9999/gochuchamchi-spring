@@ -4,11 +4,6 @@ cloud:
       bucket: ${CLOUD_AWS_S3_BUCKET:gochuchamchi-images}
     region:
       static: ${CLOUD_AWS_REGION_STATIC:ap-northeast-2}
-
-spring:
-  datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/gochuchamchi?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    ...
 spring:
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/gochuchamchi?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
@@ -24,13 +19,11 @@ spring:
     redis:
       namespace: gochuchamchi:session
     timeout: 3600
-
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
     cache: false
     encoding: UTF-8
-
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.gochuchamchi.dto
@@ -38,7 +31,6 @@ mybatis:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
     default-statement-timeout: 30
-
 server:
   port: 8080
   servlet:
@@ -46,8 +38,7 @@ server:
       charset: UTF-8
       force: true
     session:
-      timeout: 3600    # 세션 만료 시간 (초), 올바른 위치로 이동
-
+      timeout: 3600
 logging:
   level:
     com.gochuchamchi: DEBUG
