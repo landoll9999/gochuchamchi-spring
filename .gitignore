@@ -1,8 +1,6 @@
 ﻿target/
 *.jar
 *.war
-application.yml
-application-*.yml
 .env
 *.pem
 *.key

@@ -33,6 +33,15 @@
     <artifactId>s3</artifactId>
     <version>2.25.6</version>
 </dependency>
+<!-- Redis 세션 클러스터링 (여러 Pod가 세션 공유) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.session</groupId>
+      <artifactId>spring-session-data-redis</artifactId>
+    </dependency>
     <!-- Thymeleaf (JSP 대신 서버사이드 템플릿) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
