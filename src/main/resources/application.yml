@@ -4,6 +4,15 @@ spring:
     username: ${DB_USER:root}
     password: ${DB_PASS:}
     driver-class-name: org.mariadb.jdbc.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  session:
+    store-type: redis
+    redis:
+      namespace: gochuchamchi:session
+    timeout: 3600
 
   thymeleaf:
     prefix: classpath:/templates/
