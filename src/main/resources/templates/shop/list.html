@@ -4,19 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop — gochuchamchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     .shop-wrap{padding:48px 64px;flex:1;}
     .shop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid #111;}
-    .shop-title{font-family:'Permanent Marker',cursive;font-size:28px;color:#111;}
+    .shop-title{font-family:'Permanent Marker','Noto Sans KR',cursive;font-size:28px;color:#111;}
     .total-count{font-size:13px;color:#aaa;letter-spacing:1px;}
     .total-count strong{color:#111;font-weight:500;}
-    .sort-bar{display:flex;margin-bottom:40px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;gap:0;}
-    .sort-bar a{font-size:12px;letter-spacing:1px;color:#aaa;text-decoration:none;padding:8px 18px;border-right:1px solid #f0f0f0;transition:color 0.15s,background 0.15s;}
-    .sort-bar a:first-child{padding-left:0;}
-    .sort-bar a:last-child{border-right:none;}
-    .sort-bar a:hover,.sort-bar a.active{color:#111;}
+    /* 정렬 바: 좌측에 현재 분류, 우측에 정렬 드롭다운 (쇼핑몰 상품 목록의 일반적인 배치) */
+    .sort-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;gap:16px;}
+    .sort-scope{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#aaa;}
+    .sort-scope strong{color:#111;font-weight:500;}
+    .sort-field{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .sort-field label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ccc;}
+    .sort-select{appearance:none;background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpolyline points='1,1 5,5 9,1' fill='none' stroke='%23111' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center/10px 6px;
+      border:1px solid #e0e0e0;color:#111;font-size:13px;font-family:'Noto Sans KR',sans-serif;padding:10px 38px 10px 16px;cursor:pointer;outline:none;transition:border-color 0.15s;}
+    .sort-select:hover,.sort-select:focus{border-color:#111;}
     .product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:52px 28px;}
     .product-card{cursor:pointer;}
     .product-thumb{aspect-ratio:3/4;background:#f5f5f5;margin-bottom:14px;overflow:hidden;position:relative;}
@@ -43,17 +47,27 @@
       <div class="shop-title">Shop</div>
       <div style="display:flex;align-items:center;gap:24px;">
         <div class="total-count">TOTAL <strong th:text="${totalCount}">0</strong> ITEMS</div>
-        <a sec:authorize="hasAnyRole('ADMIN', 'SELLER')"
+        <a sec:authorize="hasAnyRole('ADMIN','SUPERADMIN','SELLER')"
            th:href="@{/shop/register-form}" class="btn btn-fill">+ 상품 등록</a>
       </div>
     </div>
     <div class="sort-bar">
-      <a th:href="@{/shop(sort='newest')}" th:classappend="${sort=='newest'} ? 'active'">신상품</a>
-      <a th:href="@{/shop(sort='name')}" th:classappend="${sort=='name'} ? 'active'">상품명</a>
-      <a th:href="@{/shop(sort='price_asc')}" th:classappend="${sort=='price_asc'} ? 'active'">낮은가격</a>
-      <a th:href="@{/shop(sort='price_desc')}" th:classappend="${sort=='price_desc'} ? 'active'">높은가격</a>
-      <a th:href="@{/shop(sort='brand')}" th:classappend="${sort=='brand'} ? 'active'">브랜드</a>
-      <a th:href="@{/shop(sort='popular')}" th:classappend="${sort=='popular'} ? 'active'">인기상품</a>
+      <div class="sort-scope">
+        <span th:if="${category == null or category == ''}">All Items</span>
+        <strong th:unless="${category == null or category == ''}" th:text="${category}"></strong>
+      </div>
+      <div class="sort-field">
+        <label for="sortSelect">Sort by</label>
+        <select id="sortSelect" class="sort-select" onchange="applySort(this.value)">
+          <option value="newest"     th:selected="${sort=='newest'}">신상품순</option>
+          <option value="views_desc" th:selected="${sort=='views_desc'}">인기순 (조회수 높은순)</option>
+          <option value="views_asc"  th:selected="${sort=='views_asc'}">조회수 낮은순</option>
+          <option value="price_asc"  th:selected="${sort=='price_asc'}">낮은 가격순</option>
+          <option value="price_desc" th:selected="${sort=='price_desc'}">높은 가격순</option>
+          <option value="name"       th:selected="${sort=='name'}">상품명순</option>
+          <option value="brand"      th:selected="${sort=='brand'}">브랜드순</option>
+        </select>
+      </div>
     </div>
 
     <div class="product-grid">
@@ -82,7 +96,15 @@
   </div>
 </div>
 <script th:src="@{/js/common.js}"></script>
-<script>
+<script th:inline="javascript">
+// 정렬을 바꿀 때 현재 주소의 다른 조건(category 등)은 유지하고 페이지만 1로 되돌린다.
+const SHOP_URL = /*[[@{/shop}]]*/ '/shop';
+function applySort(value){
+  const params = new URLSearchParams(window.location.search);
+  params.set('sort', value);
+  params.delete('page');
+  location.href = SHOP_URL + '?' + params.toString();
+}
 function toggleWish(btn){const s=btn.querySelector('svg');const f=s.style.fill==='rgb(17, 17, 17)';s.style.fill=f?'none':'#111';s.style.stroke=f?'#aaa':'#111';}
 </script>
 </body>

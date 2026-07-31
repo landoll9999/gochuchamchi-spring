@@ -3,69 +3,280 @@
 <head>
   <meta charset="UTF-8">
   <title>회원 관리 — Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:#f5f5f5;color:#111;font-family:'Noto Sans KR',sans-serif;font-size:14px;display:flex;}
     .content{margin-left:240px;flex:1;min-height:100vh;}
-    .topbar{height:60px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;padding:0 40px;}
+    .topbar{height:60px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;padding:0 40px;}
     .topbar-title{font-size:16px;font-weight:500;}
+    .my-role{font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;background:#f0f0f0;color:#555;}
+    .my-role.super{background:#7c3aed;color:#fff;}
     .main{padding:40px;}
     .msg-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:12px 16px;margin-bottom:24px;font-size:13px;}
+    .msg-error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:12px 16px;margin-bottom:24px;font-size:13px;}
+    .notice-box{background:#fff;border:1px solid #e0e0e0;border-left:3px solid #111;padding:14px 18px;margin-bottom:24px;font-size:13px;color:#666;line-height:1.7;}
     table{width:100%;border-collapse:collapse;background:#fff;}
     thead tr{border-bottom:2px solid #111;}
     thead th{padding:14px 16px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;font-weight:500;text-align:left;}
     tbody tr{border-bottom:1px solid #f0f0f0;transition:background 0.15s;}
     tbody tr:hover{background:#fafafa;}
-    tbody td{padding:16px;font-size:14px;color:#555;}
+    tbody tr.is-me{background:#fbfbf6;}
+    tbody td{padding:16px;font-size:14px;color:#555;vertical-align:middle;}
     .role-badge{display:inline-block;padding:3px 10px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+    .role-superadmin{background:#7c3aed;color:#fff;}
     .role-admin{background:#111;color:#fff;}
     .role-seller{background:#2563eb;color:#fff;}
     .role-user{background:#f0f0f0;color:#555;}
+    .state{font-size:12px;letter-spacing:0.5px;}
+    .state-ok{color:#bbb;}
+    .state-temp{color:#d97706;}
+    .state-perm{color:#dc2626;font-weight:500;}
+    .state-sub{display:block;font-size:11px;color:#bbb;margin-top:3px;font-weight:400;}
     .role-select{border:1px solid #e0e0e0;padding:6px 10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;background:#fff;cursor:pointer;outline:none;}
     .btn-sm{padding:7px 16px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:#111;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+    .btn-ban{background:#dc2626;}
+    .btn-unban{background:#f0f0f0;color:#333;}
+    .locked-note{font-size:12px;color:#ccc;letter-spacing:0.5px;}
+    .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+    /* ===== 계정 정지 팝업 ===== */
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;}
+    .modal-backdrop.open{display:flex;}
+    .modal{background:#fff;width:100%;max-width:460px;padding:32px;}
+    .modal-title{font-size:17px;font-weight:500;margin-bottom:6px;}
+    .modal-target{font-size:13px;color:#888;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #f0f0f0;}
+    .modal-target strong{color:#111;font-weight:500;}
+    .modal-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:12px;display:block;}
+    .dur-max{font-size:10px;color:#ccc;text-align:center;}
+    .dur-note{font-size:12px;color:#aaa;margin-top:10px;}
+    .dur-error{font-size:12px;color:#dc2626;margin-top:8px;display:none;}
+    .dur-error.show{display:block;}
+    .dur-input.bad{border-color:#dc2626;color:#dc2626;}
+    .btn-apply:disabled{background:#f0f0f0;color:#ccc;cursor:not-allowed;}
+    .dur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px;}
+    .dur-item{display:flex;flex-direction:column;gap:6px;}
+    .dur-item span{font-size:11px;color:#aaa;text-align:center;}
+    .dur-item input{border:1px solid #e0e0e0;padding:10px;font-size:15px;text-align:center;font-family:'Noto Sans KR',sans-serif;outline:none;width:100%;}
+    .dur-item input:focus{border-color:#111;}
+    .dur-item input:disabled{background:#f5f5f5;color:#ccc;}
+    .perm-row{display:flex;align-items:center;gap:9px;padding:18px 0 12px;margin-top:14px;border-top:1px solid #f0f0f0;}
+    .perm-row input{width:17px;height:17px;cursor:pointer;accent-color:#dc2626;}
+    .perm-row label{font-size:14px;color:#dc2626;font-weight:500;cursor:pointer;}
+    .perm-warn{font-size:12px;color:#dc2626;line-height:1.7;background:#fef2f2;border:1px solid #fecaca;padding:12px 14px;margin-bottom:24px;}
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+    .btn-modal{padding:11px 26px;font-size:12px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+    .btn-cancel{background:#f0f0f0;color:#555;}
+    .btn-apply{background:#dc2626;color:#fff;}
   </style>
 </head>
 <body>
 <th:block th:replace="~{admin/layout/sidebar :: sidebar}"></th:block>
 <div class="content">
-  <div class="topbar"><div class="topbar-title">회원 관리</div></div>
+  <div class="topbar">
+    <div class="topbar-title">회원 관리</div>
+    <span class="my-role" th:classappend="${isSuperAdmin} ? 'super'" th:text="${me.role}">role</span>
+  </div>
   <div class="main">
     <div class="msg-success" th:if="${success}" th:text="${success}"></div>
+    <div class="msg-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="notice-box" th:unless="${isSuperAdmin}">
+      관리자(admin)는 <strong>일반 회원(user)과 판매자(seller)</strong>의 권한 변경 · 계정 정지만 할 수 있습니다.
+      다른 관리자와 슈퍼관리자 계정은 열람만 가능하며, 변경이 필요하면 슈퍼관리자에게 요청해주세요.
+    </div>
+    <div class="notice-box" th:if="${isSuperAdmin}">
+      슈퍼관리자(superadmin)로 로그인되어 있습니다. 관리자 임명 · 해임과 관리자 계정 정지까지 가능합니다.
+      다른 슈퍼관리자 계정과 본인 계정은 사고 방지를 위해 화면에서 변경할 수 없습니다.
+    </div>
+
     <table>
       <thead>
         <tr>
-          <th>ID</th><th>아이디</th><th>이름</th><th>이메일</th><th>전화번호</th><th>가입일</th><th>권한</th><th>변경</th>
+          <th>ID</th><th>아이디</th><th>이름</th><th>이메일</th><th>전화번호</th>
+          <th>가입일</th><th>상태</th><th>권한</th><th>관리</th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="u : ${users}">
+        <tr th:each="u : ${users}" th:classappend="${u.id == me.id} ? 'is-me'">
           <td th:text="${u.id}"></td>
-          <td th:text="${u.username}"></td>
+          <td>
+            <span th:text="${u.username}"></span>
+            <span th:if="${u.id == me.id}" class="locked-note">(나)</span>
+          </td>
           <td th:text="${u.name}"></td>
           <td th:text="${u.email ?: '—'}"></td>
           <td th:text="${u.phone ?: '—'}"></td>
           <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd') : '—'}"></td>
+
+          <!-- 상태 -->
           <td>
-            <span class="role-badge"
-                  th:classappend="${u.role == 'admin'} ? 'role-admin' : (${u.role == 'seller'} ? 'role-seller' : 'role-user')"
-                  th:text="${u.role}"></span>
+            <span th:if="${!u.suspended}" class="state state-ok">정상</span>
+            <span th:if="${u.suspended and u.suspendedPermanent}" class="state state-perm">
+              영구 정지
+              <span class="state-sub" th:if="${u.suspendedBy != null}" th:text="'처리: ' + ${u.suspendedBy}"></span>
+            </span>
+            <span th:if="${u.suspended and !u.suspendedPermanent}" class="state state-temp">
+              정지 중
+              <span class="state-sub"
+                    th:text="${#temporals.format(u.suspendedUntil, 'yyyy-MM-dd HH:mm')} + ' 까지'"></span>
+            </span>
           </td>
+
+          <!-- 권한 -->
           <td>
-            <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post" style="display:flex;gap:8px;align-items:center;">
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-              <select name="role" class="role-select">
-                <option value="user" th:selected="${u.role == 'user'}">user</option>
-                <option value="seller" th:selected="${u.role == 'seller'}">seller</option>
-                <option value="admin" th:selected="${u.role == 'admin'}">admin</option>
-              </select>
-              <button type="submit" class="btn-sm">변경</button>
-            </form>
+            <span class="role-badge" th:classappend="'role-' + ${u.role}" th:text="${u.role}"></span>
+          </td>
+
+          <!-- 관리 -->
+          <td>
+            <div class="actions" th:if="${manageableIds.contains(u.id)}">
+              <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post"
+                    style="display:flex;gap:8px;align-items:center;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <select name="role" class="role-select">
+                  <option value="user"   th:selected="${u.role == 'user'}">user</option>
+                  <option value="seller" th:selected="${u.role == 'seller'}">seller</option>
+                  <option value="admin"      th:if="${isSuperAdmin}" th:selected="${u.role == 'admin'}">admin</option>
+                  <option value="superadmin" th:if="${isSuperAdmin}">superadmin</option>
+                </select>
+                <button type="submit" class="btn-sm">변경</button>
+              </form>
+
+              <button th:unless="${u.suspended}" type="button" class="btn-sm btn-ban"
+                      th:attr="data-uid=${u.id},data-uname=${u.username}"
+                      onclick="openSuspendModal(this)">정지</button>
+
+              <form th:if="${u.suspended}" th:action="@{/admin/users/{id}/unsuspend(id=${u.id})}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn-sm btn-unban"
+                        onclick="return confirm('이 계정의 정지를 해제하시겠습니까?')">정지 해제</button>
+              </form>
+            </div>
+
+            <span class="locked-note" th:unless="${manageableIds.contains(u.id)}"
+                  th:text="${u.id == me.id} ? '본인 계정' : (${u.role == 'superadmin'} ? '슈퍼관리자 계정' : '권한 없음')"></span>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- ===== 계정 정지 팝업 ===== -->
+<div class="modal-backdrop" id="suspendModal" onclick="backdropClose(event)">
+  <div class="modal">
+    <div class="modal-title">계정 사용 정지</div>
+    <div class="modal-target">대상 계정 · <strong id="suspendTarget"></strong></div>
+
+    <form method="post" id="suspendForm">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+      <span class="modal-label">정지 기간</span>
+      <div class="dur-grid">
+        <div class="dur-item">
+          <input type="number" name="days" min="0" max="36500" value="0" class="dur-input" data-max="36500" data-unit="일">
+          <span>일</span><span class="dur-max">최대 36,500</span>
+        </div>
+        <div class="dur-item">
+          <input type="number" name="hours" min="0" max="100000" value="0" class="dur-input" data-max="100000" data-unit="시간">
+          <span>시간</span><span class="dur-max">최대 100,000</span>
+        </div>
+        <div class="dur-item">
+          <input type="number" name="minutes" min="0" max="100000" value="0" class="dur-input" data-max="100000" data-unit="분">
+          <span>분</span><span class="dur-max">최대 100,000</span>
+        </div>
+        <div class="dur-item">
+          <input type="number" name="seconds" min="0" max="100000" value="0" class="dur-input" data-max="100000" data-unit="초">
+          <span>초</span><span class="dur-max">최대 100,000</span>
+        </div>
+      </div>
+      <div class="dur-note">일 기준 최대 36,500일(약 100년)까지 정지할 수 있습니다.</div>
+      <div class="dur-error" id="durError"></div>
+
+      <div class="perm-row">
+        <input type="checkbox" name="permanent" value="true" id="permanent" onchange="togglePermanent()">
+        <label for="permanent">영구 정지</label>
+      </div>
+      <p class="perm-warn">
+        영구 정지는 기간이 지나도 자동으로 풀리지 않습니다.<br>
+        관리자가 직접 해제하기 전까지 해당 계정은 <strong>영구적으로 로그인이 차단</strong>됩니다. 신중히 선택해주세요.
+      </p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeSuspendModal()">취소</button>
+        <button type="submit" class="btn-modal btn-apply" id="applyBtn">정지 적용</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script th:inline="javascript">
+const ADMIN_USERS = /*[[@{/admin/users}]]*/ '/admin/users';
+
+const durInputs = () => [...document.querySelectorAll('.dur-input')];
+
+function openSuspendModal(btn) {
+  document.getElementById('suspendTarget').textContent = btn.dataset.uname;
+  document.getElementById('suspendForm').action = ADMIN_USERS + '/' + btn.dataset.uid + '/suspend';
+  document.getElementById('permanent').checked = false;
+  durInputs().forEach(i => { i.value = 0; i.disabled = false; i.classList.remove('bad'); });
+  validateDuration();
+  document.getElementById('suspendModal').classList.add('open');
+}
+
+/** 범위를 벗어나면 '정지 적용' 버튼을 잠근다. 서버에서도 같은 한도를 다시 검사한다 */
+function validateDuration() {
+  const errBox = document.getElementById('durError'), applyBtn = document.getElementById('applyBtn');
+  let msg = '', total = 0;
+
+  if (!document.getElementById('permanent').checked) {   // 영구 정지는 기간을 보지 않음
+    durInputs().forEach(el => {
+      const v = el.value.trim(), max = Number(el.dataset.max);
+      const bad = !/^\d*$/.test(v) || Number(v || 0) > max;
+      el.classList.toggle('bad', bad);
+      if (bad && !msg) msg = /^\d*$/.test(v)
+        ? `${el.dataset.unit} 은(는) 최대 ${max.toLocaleString()} 까지 입력할 수 있습니다.`
+        : '정지 기간은 0 이상의 숫자만 입력할 수 있습니다.';
+      if (!bad) total += Number(v || 0);
+    });
+    if (!msg && total <= 0) msg = '정지 기간을 입력해주세요. 영구 정지는 아래 체크박스를 사용하세요.';
+  } else {
+    durInputs().forEach(el => el.classList.remove('bad'));
+  }
+
+  errBox.textContent = msg;
+  errBox.classList.toggle('show', !!msg);
+  applyBtn.disabled = !!msg;
+}
+
+function closeSuspendModal() {
+  document.getElementById('suspendModal').classList.remove('open');
+}
+
+function backdropClose(e) {
+  if (e.target.id === 'suspendModal') closeSuspendModal();
+}
+
+// 영구 정지면 기간 입력은 의미가 없으므로 잠근다
+function togglePermanent() {
+  const perm = document.getElementById('permanent').checked;
+  durInputs().forEach(el => { el.disabled = perm; });
+  validateDuration();
+}
+
+durInputs().forEach(el => el.addEventListener('input', validateDuration));
+
+document.getElementById('suspendForm').addEventListener('submit', function (e) {
+  validateDuration();
+  if (document.getElementById('applyBtn').disabled) { e.preventDefault(); return; }
+  if (document.getElementById('permanent').checked
+      && !confirm('영구 정지는 직접 해제하기 전까지 풀리지 않습니다. 정말 영구 정지하시겠습니까?')) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSuspendModal(); });
+</script>
 </body>
 </html>

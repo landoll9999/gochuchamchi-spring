@@ -5,6 +5,22 @@
   <div class="topbar">
     <a href="#">Search</a>
     <a href="#">Cart (0)</a>
+
+    <span class="topbar-sep"></span>
+
+    <!-- 계정 메뉴. 사각형 패널(.corner-auth) 대신 글자만 놓도록 상단바로 옮김 -->
+    <th:block th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
+      <a th:href="@{/mypage}">Mypage</a>
+      <!-- 로그아웃은 CSRF 가 필요한 POST 라 form+button. .link-btn 으로 링크처럼 보이게 -->
+      <form th:action="@{/auth/logout}" method="post" class="link-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="link-btn">Logout</button>
+      </form>
+    </th:block>
+    <th:block th:unless="${#authentication != null and #authentication.name != 'anonymousUser'}">
+      <a th:href="@{/auth/login}">Login</a>
+      <a th:href="@{/auth/register}">Register</a>
+    </th:block>
   </div>
 </th:block>
 </body>

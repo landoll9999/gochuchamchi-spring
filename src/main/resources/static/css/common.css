@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+/* 웹폰트는 templates/layout/head.html 에서 <link> 로 로드 (@import 는 요청이 늦어져 제거)
+   Permanent Marker 는 한글 글리프가 없다 → 대체 폰트에 Noto Sans KR 을 먼저 둬야 바탕체로 안 떨어짐 */
 
 /* ===== 기본 리셋 ===== */
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -7,7 +8,7 @@ body{background:#fff;color:#111;font-family:'Noto Sans KR','Helvetica Neue',Aria
 /* ===== 사이드바 ===== */
 aside{width:260px;min-width:260px;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;background:#fff;z-index:10;}
 .sidebar-brand{padding:28px 28px 22px;border-bottom:1px solid #e0e0e0;}
-.sidebar-brand a{font-family:'Permanent Marker',cursive;font-size:22px;color:#111;text-decoration:none;transition:opacity 0.2s;}
+.sidebar-brand a{font-family:'Permanent Marker','Noto Sans KR',cursive;font-size:22px;color:#111;text-decoration:none;transition:opacity 0.2s;}
 .sidebar-brand a:hover{opacity:0.5;}
 nav{flex:1;padding:10px 0;overflow-y:auto;}
 nav::-webkit-scrollbar{width:0;}
@@ -26,22 +27,23 @@ nav::-webkit-scrollbar{width:0;}
 .sub-menu a:hover::before{color:#111;}
 .nav-divider{height:1px;background:#f0f0f0;margin:4px 0;}
 
-/* ===== 우측 상단 인증 ===== */
-.corner-auth{position:fixed;top:64px;right:0;background:rgba(255,255,255,0.95);border-left:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding:14px 20px;z-index:100;backdrop-filter:blur(4px);}
-.corner-auth a{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#aaa;text-decoration:none;transition:color 0.15s;}
-.corner-auth a:hover,.corner-auth a.active{color:#111;}
-.corner-auth .c-divider{width:1px;height:12px;background:#e0e0e0;align-self:flex-end;}
-
 /* ===== 콘텐츠 영역 ===== */
 .content-wrap{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh;position:relative;}
 .topbar{height:64px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:flex-end;padding:0 40px;gap:32px;background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);position:sticky;top:0;z-index:5;}
 .topbar a{font-size:12px;letter-spacing:2px;color:#aaa;text-decoration:none;text-transform:uppercase;transition:color 0.15s,letter-spacing 0.2s;}
 .topbar a:hover{color:#111;letter-spacing:3px;}
+/* 쇼핑 메뉴와 계정 메뉴 사이 구분선 */
+.topbar .topbar-sep{width:1px;height:11px;background:#e5e5e5;flex-shrink:0;}
+/* 로그아웃 버튼: 배경·테두리·여백을 지워 옆의 글자 링크와 똑같이 보이게 */
+.topbar .link-form{display:inline-flex;}
+.topbar .link-btn{background:none;border:none;padding:0;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;letter-spacing:2px;color:#aaa;text-transform:uppercase;transition:color 0.15s,letter-spacing 0.2s;}
+.topbar .link-btn:hover{color:#111;letter-spacing:3px;}
 
 /* ===== 공통 페이지 ===== */
 .page-wrap{padding:64px 80px;flex:1;max-width:900px;}
 .page-title{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:#aaa;margin-bottom:52px;}
-.page-title .title-main{display:block;font-family:'Permanent Marker',cursive;font-size:42px;letter-spacing:-1px;color:#111;margin-top:10px;}
+.page-title .title-main{display:block;font-family:'Permanent Marker','Noto Sans KR',cursive;font-size:42px;letter-spacing:-1px;color:#111;margin-top:10px;}
 .page-title .title-ko{display:block;font-family:'Noto Sans KR',sans-serif;font-size:36px;font-weight:400;letter-spacing:-0.5px;color:#111;margin-top:10px;}
 
 /* ===== 폼 공통 ===== */
@@ -110,8 +112,7 @@ nav::-webkit-scrollbar{width:0;}
   aside{transform:translateX(-100%);transition:transform 0.3s ease;z-index:100;}
   aside.open{transform:translateX(0);}
   .content-wrap{margin-left:0;}
-  .corner-auth{top:64px;}
-  .topbar{padding:0 16px 0 60px;}
+  .topbar{padding:0 16px 0 60px;gap:18px;}
   .page-wrap{padding:40px 24px;}
   .product-grid{grid-template-columns:repeat(2,1fr) !important;gap:24px 16px !important;}
   .row-2{grid-template-columns:1fr !important;}

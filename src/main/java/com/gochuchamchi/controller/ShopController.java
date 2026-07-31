@@ -28,6 +28,11 @@ public class ShopController {
     private final S3Service s3Service;
     private static final int PAGE_SIZE = 12;
 
+    /** 정렬 드롭다운에서 허용하는 값. 이 밖의 값이 들어오면 기본값(신상품순)으로 되돌린다. */
+    private static final List<String> SORT_OPTIONS =
+            List.of("newest", "views_desc", "views_asc", "price_asc", "price_desc", "name", "brand");
+    private static final String DEFAULT_SORT = "newest";
+
     public ShopController(ProductMapper productMapper, ProductSizeMapper productSizeMapper,
                           UserMapper userMapper, S3Service s3Service) {
         this.productMapper = productMapper;
@@ -37,10 +42,13 @@ public class ShopController {
     }
 
     @GetMapping
-    public String list(@RequestParam(defaultValue = "newest") String sort,
+    public String list(@RequestParam(defaultValue = DEFAULT_SORT) String sort,
                        @RequestParam(defaultValue = "") String category,
                        @RequestParam(defaultValue = "1") int page,
                        Model model) {
+        sort = normalizeSort(sort);
+        if (page < 1) page = 1;
+
         int offset = (page - 1) * PAGE_SIZE;
         int total = productMapper.countAll(category);
         model.addAttribute("products", productMapper.findAll(offset, PAGE_SIZE, sort, category));
@@ -50,6 +58,12 @@ public class ShopController {
         model.addAttribute("sort", sort);
         model.addAttribute("category", category);
         return "shop/list";
+    }
+
+    /** 이전 링크(popular)를 새 값으로 옮겨주고, 알 수 없는 값은 기본 정렬로 되돌린다. */
+    private String normalizeSort(String sort) {
+        if ("popular".equals(sort)) return "views_desc";   // 기존 '인기상품' 링크 호환
+        return SORT_OPTIONS.contains(sort) ? sort : DEFAULT_SORT;
     }
 
     @GetMapping("/{id}")
@@ -69,13 +83,13 @@ public class ShopController {
     }
 
     @GetMapping("/register-form")
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN', 'SUPERADMIN')")
     public String registerForm() {
         return "shop/register";
     }
 
     @PostMapping("/register")
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN', 'SUPERADMIN')")
     public String register(@RequestParam String brand,
                            @RequestParam String name,
                            @RequestParam String category,

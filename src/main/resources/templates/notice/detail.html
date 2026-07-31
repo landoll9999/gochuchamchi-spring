@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title th:text="${notice.title} + ' — gochuchamchi'">Notice — gochuchamchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     .notice-detail{padding:64px 80px;flex:1;max-width:860px;}
@@ -34,7 +34,7 @@
     <div class="detail-body" th:text="${notice.content}"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:56px;">
       <a th:href="@{/notice}" class="txt-link">← 목록으로</a>
-      <div sec:authorize="hasRole('ADMIN')"
+      <div sec:authorize="hasAnyRole('ADMIN','SUPERADMIN')"
            style="display:flex;gap:12px;">
         <a th:href="@{/admin/notices/{id}/edit(id=${notice.id})}" class="btn">수정</a>
         <form th:action="@{/admin/notices/{id}/delete(id=${notice.id})}" method="post" style="display:inline;">

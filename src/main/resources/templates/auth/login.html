@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — gochuchamchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     .login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 64px);}
@@ -19,6 +19,8 @@
     <div class="login-box">
       <div class="page-title">Welcome back <span class="title-main">Login</span></div>
       <div class="msg-error" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+      <!-- 정지된 계정: alert 으로 한 번 알리고, 닫은 뒤에도 읽을 수 있게 화면에도 남긴다 -->
+      <div class="msg-error" th:if="${suspendedMessage}" th:text="${suspendedMessage}"></div>
       <div class="msg-success" th:if="${success}" th:text="${success}"></div>
       <form th:action="@{/auth/login}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -43,5 +45,8 @@
   </div>
 </div>
 <script th:src="@{/js/common.js}"></script>
+<script th:if="${suspendedMessage}" th:inline="javascript">
+  alert([[${suspendedMessage}]]);
+</script>
 </body>
 </html>

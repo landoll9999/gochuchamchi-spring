@@ -4,18 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>gochuchamchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     #splash{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.7s ease;}
-    #splash .splash-logo{font-family:'Permanent Marker',cursive;font-size:72px;color:#111;margin-bottom:40px;letter-spacing:-1px;cursor:pointer;transition:opacity 0.2s;user-select:none;}
+    #splash .splash-logo{font-family:'Permanent Marker','Noto Sans KR',cursive;font-size:72px;color:#111;margin-bottom:40px;letter-spacing:-1px;cursor:pointer;transition:opacity 0.2s;user-select:none;}
     #splash .splash-logo:hover{opacity:0.4;}
     #splash .splash-hint{margin-top:20px;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#ccc;}
     #splash.hidden{opacity:0;pointer-events:none;}
     #main{display:flex;min-height:100vh;opacity:0;transition:opacity 0.5s ease 0.2s;}
     #main.visible{opacity:1;}
     main{flex:1;position:relative;min-height:calc(100vh - 64px);overflow:hidden;background:#fff;}
-    .bg-texture{position:absolute;inset:0;background-image:url('https://gochuchamchi-images-307223751140.s3.ap-northeast-2.amazonaws.com/texture.png');background-size:cover;background-position:center;background-attachment:fixed;opacity:1;mix-blend-mode:multiply;}
+    /* 디자인 자산이라 S3 아닌 static/images. style 안이라 절대경로로 적는다 */
+    .bg-texture{position:absolute;inset:0;background-image:url('/images/texture.jpg');background-size:cover;background-position:center;background-attachment:fixed;opacity:1;mix-blend-mode:multiply;}
   </style>
 </head>
 <body style="display:block;">

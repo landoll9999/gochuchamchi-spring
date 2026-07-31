@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notice — gochuchamchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <th:block th:replace="~{layout/head :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     .notice-wrap{padding:64px 80px;flex:1;}
@@ -35,7 +35,7 @@
       <div class="page-title" style="margin-bottom:0;">
         공지사항 <span class="title-main">Notice</span>
       </div>
-      <a sec:authorize="hasRole('ADMIN')"
+      <a sec:authorize="hasAnyRole('ADMIN','SUPERADMIN')"
          th:href="@{/admin/notices/new}" class="btn btn-fill">+ 공지사항 등록</a>
     </div>
 

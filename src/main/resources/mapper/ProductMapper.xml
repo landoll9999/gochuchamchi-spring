@@ -24,11 +24,13 @@
     WHERE active = 1
     <if test="category != null and category != ''">AND category = #{category}</if>
     <choose>
-      <when test="sort == 'price_asc'">ORDER BY price ASC</when>
-      <when test="sort == 'price_desc'">ORDER BY price DESC</when>
-      <when test="sort == 'name'">ORDER BY name ASC</when>
-      <when test="sort == 'brand'">ORDER BY brand ASC</when>
-      <when test="sort == 'popular'">ORDER BY view_count DESC</when>
+      <when test="sort == 'price_asc'">ORDER BY price ASC, created_at DESC</when>
+      <when test="sort == 'price_desc'">ORDER BY price DESC, created_at DESC</when>
+      <when test="sort == 'name'">ORDER BY name ASC, created_at DESC</when>
+      <when test="sort == 'brand'">ORDER BY brand ASC, created_at DESC</when>
+      <!-- 조회수: 같은 조회수끼리는 최신 등록 순으로 이어서 정렬해 페이지마다 순서가 흔들리지 않게 한다 -->
+      <when test="sort == 'views_desc' or sort == 'popular'">ORDER BY view_count DESC, created_at DESC</when>
+      <when test="sort == 'views_asc'">ORDER BY view_count ASC, created_at DESC</when>
       <otherwise>ORDER BY created_at DESC</otherwise>
     </choose>
     LIMIT #{limit} OFFSET #{offset}

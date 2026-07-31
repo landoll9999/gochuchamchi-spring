@@ -1,15 +1,20 @@
 package com.gochuchamchi.controller;
 
 import com.gochuchamchi.dto.NoticeDto;
+import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.NoticeMapper;
 import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.UserMapper;
+import com.gochuchamchi.service.AdminUserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
@@ -18,11 +23,14 @@ public class AdminController {
     private final UserMapper userMapper;
     private final NoticeMapper noticeMapper;
     private final ProductMapper productMapper;
+    private final AdminUserService adminUserService;
 
-    public AdminController(UserMapper userMapper, NoticeMapper noticeMapper, ProductMapper productMapper) {
+    public AdminController(UserMapper userMapper, NoticeMapper noticeMapper,
+                           ProductMapper productMapper, AdminUserService adminUserService) {
         this.userMapper = userMapper;
         this.noticeMapper = noticeMapper;
         this.productMapper = productMapper;
+        this.adminUserService = adminUserService;
     }
 
     @GetMapping
@@ -33,20 +41,72 @@ public class AdminController {
         return "admin/dashboard";
     }
 
+    // ===================== 회원 관리 =====================
+
     @GetMapping("/users")
-    public String users(Model model) {
-        model.addAttribute("users", userMapper.findAllForAdmin());
+    public String users(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        UserDto me = actor(userDetails);
+        List<UserDto> users = userMapper.findAllForAdmin();
+
+        model.addAttribute("users", users);
+        model.addAttribute("me", me);
+        model.addAttribute("isSuperAdmin", AdminUserService.isSuperAdmin(me));
+        // 화면에서 행마다 다시 계산하지 않도록 관리 가능한 id 를 미리 담아준다
+        model.addAttribute("manageableIds", users.stream()
+                .filter(u -> AdminUserService.canManage(me, u))
+                .map(UserDto::getId)
+                .toList());
         return "admin/users";
     }
 
     @PostMapping("/users/{id}/role")
-    public String updateRole(@PathVariable Long id,
+    public String updateRole(@AuthenticationPrincipal UserDetails userDetails,
+                             @PathVariable Long id,
                              @RequestParam String role,
                              RedirectAttributes ra) {
-        userMapper.updateRole(id, role);
-        ra.addFlashAttribute("success", "권한이 변경되었습니다.");
+        try {
+            adminUserService.changeRole(actor(userDetails), id, role);
+            ra.addFlashAttribute("success", "권한이 변경되었습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/admin/users";
     }
+
+    @PostMapping("/users/{id}/suspend")
+    public String suspendUser(@AuthenticationPrincipal UserDetails userDetails,
+                              @PathVariable Long id,
+                              @RequestParam(defaultValue = "0") long days,
+                              @RequestParam(defaultValue = "0") long hours,
+                              @RequestParam(defaultValue = "0") long minutes,
+                              @RequestParam(defaultValue = "0") long seconds,
+                              @RequestParam(defaultValue = "false") boolean permanent,
+                              RedirectAttributes ra) {
+        try {
+            adminUserService.suspend(actor(userDetails), id, days, hours, minutes, seconds, permanent);
+            ra.addFlashAttribute("success", permanent
+                    ? "해당 계정을 영구 정지했습니다."
+                    : "해당 계정을 정지했습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/users/{id}/unsuspend")
+    public String unsuspendUser(@AuthenticationPrincipal UserDetails userDetails,
+                                @PathVariable Long id,
+                                RedirectAttributes ra) {
+        try {
+            adminUserService.unsuspend(actor(userDetails), id);
+            ra.addFlashAttribute("success", "계정 정지를 해제했습니다.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    // ===================== 공지사항 =====================
 
     @GetMapping("/notices")
     public String notices(Model model) {
@@ -88,6 +148,8 @@ public class AdminController {
         return "redirect:/admin/notices";
     }
 
+    // ===================== 상품 =====================
+
     @GetMapping("/products")
     public String products(Model model) {
         model.addAttribute("products", productMapper.findAll(0, 100, "newest", ""));
@@ -99,5 +161,24 @@ public class AdminController {
         productMapper.delete(id);
         ra.addFlashAttribute("success", "상품이 삭제되었습니다.");
         return "redirect:/admin/products";
+    }
+
+    /** long 범위를 넘는 값은 컨트롤러 진입 전에 변환 실패한다. 오류 페이지 대신 안내로 바꿔준다 */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public String handleBadNumber(MethodArgumentTypeMismatchException e, RedirectAttributes ra) {
+        String field = e.getName();
+        if (List.of("days", "hours", "minutes", "seconds").contains(field)) {
+            ra.addFlashAttribute("error",
+                "정지 기간에 넣을 수 없는 값입니다. 일은 최대 " + AdminUserService.MAX_SUSPEND_DAYS
+                + "일(약 100년), 시간 · 분 · 초는 각각 " + AdminUserService.MAX_SUSPEND_UNIT + " 이하로 입력해주세요.");
+            return "redirect:/admin/users";
+        }
+        ra.addFlashAttribute("error", "요청 값이 올바르지 않습니다. (" + field + ")");
+        return "redirect:/admin";
+    }
+
+    /** 지금 로그인한 관리자 계정. */
+    private UserDto actor(UserDetails userDetails) {
+        return userMapper.findByUsername(userDetails.getUsername());
     }
 }

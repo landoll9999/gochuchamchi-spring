@@ -1,0 +1,46 @@
+# 로컬 테스트용. MariaDB · Redis · 앱을 한 번에 띄운다. 접속: http://localhost:8080
+#   docker compose up --build   /   down   /   down -v (DB 데이터까지 삭제)
+# 아래 비밀번호는 로컬 전용. 운영 값을 넣지 말 것.
+
+services:
+  db:
+    image: mariadb:11
+    container_name: gochuchamchi-db
+    environment:
+      MARIADB_ROOT_PASSWORD: localdev
+      MARIADB_DATABASE: gochuchamchi
+    ports:
+      - "3307:3306"          # 호스트 3306 과 충돌 피하려고 3307
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro   # 최초 기동 시 1회 (변경 시 down -v 필요)
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    container_name: gochuchamchi-redis
+    ports:
+      - "6380:6379"
+
+  app:
+    build: .
+    container_name: gochuchamchi-app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      # 아이디를 적고 다시 올리면 그 계정이 superadmin 으로 승격 (회원가입이 먼저)
+      APP_SUPERADMIN_USERNAME: "${APP_SUPERADMIN_USERNAME:-}"
+    volumes:
+      - ./local/application.yml:/app/config/application.yml:ro   # ENTRYPOINT 가 이 파일을 설정으로 사용
+
+volumes:
+  dbdata:

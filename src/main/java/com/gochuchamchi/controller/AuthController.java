@@ -1,7 +1,9 @@
 package com.gochuchamchi.controller;
 
+import com.gochuchamchi.config.LoginFailureHandler;
 import com.gochuchamchi.dto.RegisterForm;
 import com.gochuchamchi.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,7 +23,14 @@ public class AuthController {
     private final UserService userService;
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(HttpSession session, Model model) {
+        // 정지된 계정이 로그인을 시도하면 LoginFailureHandler 가 안내 문구를 세션에 담아둔다.
+        // 한 번 보여준 뒤에는 지워서 새로고침 때 다시 뜨지 않게 한다.
+        Object suspended = session.getAttribute(LoginFailureHandler.SUSPENDED_MESSAGE);
+        if (suspended != null) {
+            model.addAttribute("suspendedMessage", suspended);
+            session.removeAttribute(LoginFailureHandler.SUSPENDED_MESSAGE);
+        }
         return "auth/login";
     }
 

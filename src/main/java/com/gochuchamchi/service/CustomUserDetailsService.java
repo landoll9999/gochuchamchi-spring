@@ -25,10 +25,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
         }
+        String role = user.getRole() == null ? "user" : user.getRole();
         return new User(
             user.getUsername(),  // principal name을 username으로 통일
             user.getPassword(),
-            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()))
+            true,                        // enabled
+            true,                        // accountNonExpired
+            true,                        // credentialsNonExpired
+            !user.isSuspended(),         // accountNonLocked — 정지된 계정은 LockedException 으로 로그인 차단
+            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
         );
     }
 }

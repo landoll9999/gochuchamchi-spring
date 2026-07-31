@@ -1,8 +1,9 @@
+# 로컬 도커용 설정. /app/config/application.yml 로 마운트된다.
+# ENTRYPOINT 가 --spring.config.location 으로 이 파일만 쓰므로 jar 안의 yml 은 안 읽힌다 → 항목이 전부 있어야 함
+
 app:
   superadmin:
-    # 기동 시 이 아이디를 superadmin 으로 승격 (비우면 동작 안 함, 계정 생성은 안 하므로 회원가입이 먼저)
-    # 컨테이너는 외부 yml 을 쓰므로 이 파일은 운영에서 안 읽힘 → 운영은 환경변수 APP_SUPERADMIN_USERNAME
-    username: ${SUPERADMIN_USERNAME:}
+    username: ${APP_SUPERADMIN_USERNAME:}
 cloud:
   aws:
     s3:
@@ -11,14 +12,14 @@ cloud:
       static: ${CLOUD_AWS_REGION_STATIC:ap-northeast-2}
 spring:
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/gochuchamchi?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: ${DB_USER:root}
-    password: ${DB_PASS:}
+    url: jdbc:mariadb://db:3306/gochuchamchi?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: root
+    password: localdev
     driver-class-name: org.mariadb.jdbc.Driver
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      host: redis
+      port: 6379
   session:
     store-type: redis
     redis:

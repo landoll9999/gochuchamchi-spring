@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  웹폰트 공통 조각. 모든 페이지 <head> 에서 사용.
+    preconnect     : fonts.gstatic.com 왕복을 미리 끝내둠
+    Marker = block : 로고용. 도착 전엔 잠깐 감췄다 제 폰트로 → 폰트 바뀌는 게 안 보임 (라틴만이라 파일이 작음)
+    Noto  = swap   : 한글 본문. 용량이 커서 block 이면 글이 늦게 보임
+  common.css 의 @import 는 제거했다 (CSS 파싱 후에야 요청이 시작되어 교체가 더 늦음)
+-->
+<th:block th:fragment="fonts">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=block">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
+</th:block>
+</body>
+</html>

@@ -74,29 +74,15 @@
     <div class="nav-item"><a href="#">Support</a></div>
 
     <!-- 관리자 메뉴 -->
-    <div sec:authorize="hasRole('ADMIN')">
+    <div sec:authorize="hasAnyRole('ADMIN','SUPERADMIN')">
       <div class="nav-divider"></div>
       <div class="nav-item"><a th:href="@{/admin}" style="color:#e74c3c;">Admin</a></div>
     </div>
   </nav>
 </aside>
 
-<!-- 우측 상단 인증 -->
-<div class="corner-auth">
-  <div th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
-    <a th:href="@{/mypage}">Mypage</a>
-    <div class="c-divider"></div>
-    <form th:action="@{/auth/logout}" method="post" style="display:inline;">
-      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-      <button type="submit" style="background:none;border:none;cursor:pointer;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#aaa;font-family:'Noto Sans KR',sans-serif;padding:0;transition:color 0.15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#aaa'">Logout</button>
-    </form>
-  </div>
-  <div th:if="${#authentication == null or #authentication.name == 'anonymousUser'}">
-    <a th:href="@{/auth/login}">Login</a>
-    <div class="c-divider"></div>
-    <a th:href="@{/auth/register}">Register</a>
-  </div>
-</div>
+<!-- 계정 메뉴(Login / Logout / Mypage)는 layout/topbar.html 로 옮겼다.
+     예전에는 여기에 .corner-auth 라는 테두리 있는 사각형 패널로 떠 있었다. -->
 <script>
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');

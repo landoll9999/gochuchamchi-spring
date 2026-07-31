@@ -1,5 +1,7 @@
 package com.gochuchamchi.config;
 
+import com.gochuchamchi.mapper.UserMapper;
+import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -16,9 +19,18 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final LoginFailureHandler loginFailureHandler;
+    private final UserMapper userMapper;
+    private final AdminUserService adminUserService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          LoginFailureHandler loginFailureHandler,
+                          UserMapper userMapper,
+                          AdminUserService adminUserService) {
         this.userDetailsService = userDetailsService;
+        this.loginFailureHandler = loginFailureHandler;
+        this.userMapper = userMapper;
+        this.adminUserService = adminUserService;
     }
 
     @Bean
@@ -32,7 +44,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/auth/**", "/shop/**", "/notice/**",
                                  "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
                 .requestMatchers("/mypage/**").authenticated()
                 .anyRequest().authenticated()
             )
@@ -42,7 +54,7 @@ public class SecurityConfig {
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/", true)
-                .failureUrl("/auth/login?error=true")
+                .failureHandler(loginFailureHandler)   // 정지 계정이면 안내 문구를 세션에 담아 로그인 페이지로
                 .permitAll()
             )
             .logout(logout -> logout
@@ -55,7 +67,10 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex
                 .accessDeniedPage("/error/403")
             )
-            .userDetailsService(userDetailsService);
+            .userDetailsService(userDetailsService)
+            // 로그인해 있는 동안 정지되면 다음 요청에서 바로 끊는다.
+            // (필터를 @Component 로 두면 서블릿 체인에도 자동 등록되어 두 번 도므로 여기서 직접 만든다)
+            .addFilterAfter(new SuspendedUserFilter(userMapper, adminUserService), AuthorizationFilter.class);
         return http.build();
     }
 }
