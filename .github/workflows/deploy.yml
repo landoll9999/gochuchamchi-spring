@@ -18,6 +18,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+jobs:
+  deploy:
+
+jobs:
+  deploy:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -38,12 +50,15 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Docker build
-        run: docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+        run: docker build -t app:ci .
 
       - name: Trivy scan (fail on HIGH/CRITICAL)
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          image-ref: app:ci
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: app:ci
           format: table
           exit-code: "1"
           severity: HIGH,CRITICAL
@@ -60,9 +75,11 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Tag & push
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          SHA: ${{ github.sha }}
         run: |
-          REGISTRY=${{ steps.ecr-login.outputs.registry }}
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $REGISTRY/${{ env.ECR_REPOSI
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $REGISTRY/${{ env.ECR_REPOSITORY }}:latest
-          docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker tag app:ci "$REGISTRY/$ECR_REPOSITORY:$SHA"
+          docker tag app:ci "$REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$REGISTRY/$ECR_REPOSITORY:$SHA"
+          docker push "$REGISTRY/$ECR_REPOSITORY:latest"
