@@ -6,6 +6,16 @@ on:
   workflow_dispatch:
 
 permissions:
+1. Deploy to Amazon ECR 워크플로 파일을 아래 내용으로 교체 (연필 아이콘 → 전체 교체 → main 커밋):
+
+name: Deploy to Amazon ECR
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
   id-token: write
   contents: read
 
@@ -62,14 +72,11 @@ jobs:
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
-      - name: Login to Amazon ECR
-        id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Tag & push
         run: |
           REGISTRY=${{ steps.ecr-login.outputs.registry }}
-          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $REGISTRY/${{ env.ECR_REPOSI
           docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} $REGISTRY/${{ env.ECR_REPOSITORY }}:latest
           docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:latest
