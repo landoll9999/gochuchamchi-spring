@@ -12,6 +12,7 @@ RUN apk add --no-cache maven && \
 
 # ===== 실행 스테이지 =====
 FROM eclipse-temurin:17-jre-alpine
+RUN apk --no-cache upgrade
 WORKDIR /app
 
 # 빌드된 jar 복사
