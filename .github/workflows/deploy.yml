@@ -1,21 +1,26 @@
-name: Deploy to Amazon ECR
+name: Build and sign release image
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: gochuchamchi
+  ECR_REPOSITORY_URL: ${{ vars.ECR_REPOSITORY_URL }}
 
 jobs:
-  deploy:
+  build:
+    name: Build and publish candidate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
 
     steps:
       - name: Checkout code
@@ -31,13 +36,14 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: temurin
+          cache: maven
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Docker build
+      - name: Build candidate image
         run: docker build -t app:ci .
 
       - name: Trivy scan (fail on HIGH/CRITICAL)
@@ -49,22 +55,135 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
 
-      - name: Configure AWS credentials
+      - name: Configure AWS build credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::307223751140:role/gochuchamchi-github-actions-ecr-push
+          role-to-assume: ${{ vars.AWS_ECR_BUILD_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Tag & push
+      - name: Push candidate and capture digest
+        id: push
+        shell: bash
         env:
-          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          SHA: ${{ github.sha }}
+          CANDIDATE_TAG: candidate-${{ github.sha }}
         run: |
-          docker tag app:ci "$REGISTRY/$ECR_REPOSITORY:$SHA"
-          docker tag app:ci "$REGISTRY/$ECR_REPOSITORY:latest"
-          docker push "$REGISTRY/$ECR_REPOSITORY:$SHA"
-          docker push "$REGISTRY/$ECR_REPOSITORY:latest"
+          set -euo pipefail
+
+          image="${ECR_REPOSITORY_URL}:${CANDIDATE_TAG}"
+          repository_name="${ECR_REPOSITORY_URL##*/}"
+
+          docker tag app:ci "${image}"
+          docker push "${image}"
+
+          digest=""
+          for attempt in 1 2 3 4 5; do
+            digest="$(aws ecr batch-get-image \
+              --repository-name "${repository_name}" \
+              --image-ids imageTag="${CANDIDATE_TAG}" \
+              --query 'images[0].imageId.imageDigest' \
+              --output text 2>/dev/null || true)"
+
+            if [[ "${digest}" == sha256:* ]]; then
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [[ "${digest}" != sha256:* ]]; then
+            echo "Unable to resolve the pushed candidate digest." >&2
+            exit 1
+          fi
+
+          echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
+          echo "Published ${image}@${digest}"
+
+  sign:
+    name: Sign and promote release
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production-signing
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Configure AWS signing credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_IMAGE_SIGNER_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign candidate digest with AWS KMS
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.build.outputs.digest }}
+          KMS_KEY_ARN: ${{ vars.IMAGE_SIGNING_KMS_KEY_ARN }}
+        run: |
+          set -euo pipefail
+
+          cosign sign --yes \
+            --key "awskms:///${KMS_KEY_ARN}" \
+            "${ECR_REPOSITORY_URL}@${IMAGE_DIGEST}"
+
+      - name: Promote signed digest
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.build.outputs.digest }}
+          SIGNED_TAG: signed-${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          repository_name="${ECR_REPOSITORY_URL##*/}"
+          existing_digest="$(aws ecr batch-get-image \
+            --repository-name "${repository_name}" \
+            --image-ids imageTag="${SIGNED_TAG}" \
+            --query 'images[0].imageId.imageDigest' \
+            --output text 2>/dev/null || true)"
+
+          if [[ "${existing_digest}" == "${IMAGE_DIGEST}" ]]; then
+            echo "${SIGNED_TAG} already points to ${IMAGE_DIGEST}."
+            exit 0
+          fi
+
+          if [[ "${existing_digest}" == sha256:* ]]; then
+            echo "Refusing to move existing ${SIGNED_TAG} from ${existing_digest}." >&2
+            exit 1
+          fi
+
+          manifest="$(aws ecr batch-get-image \
+            --repository-name "${repository_name}" \
+            --image-ids imageDigest="${IMAGE_DIGEST}" \
+            --query 'images[0].imageManifest' \
+            --output text)"
+
+          if [[ -z "${manifest}" || "${manifest}" == "None" ]]; then
+            echo "Unable to load the candidate manifest for ${IMAGE_DIGEST}." >&2
+            exit 1
+          fi
+
+          aws ecr put-image \
+            --repository-name "${repository_name}" \
+            --image-tag "${SIGNED_TAG}" \
+            --image-manifest "${manifest}"
+
+      - name: Verify published signature
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.build.outputs.digest }}
+          KMS_KEY_ARN: ${{ vars.IMAGE_SIGNING_KMS_KEY_ARN }}
+        run: |
+          set -euo pipefail
+
+          cosign verify \
+            --key "awskms:///${KMS_KEY_ARN}" \
+            "${ECR_REPOSITORY_URL}@${IMAGE_DIGEST}"
