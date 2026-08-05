@@ -68,7 +68,9 @@ jobs:
         id: push
         shell: bash
         env:
-          CANDIDATE_TAG: candidate-${{ github.sha }}
+          # ECR release/candidate tags are immutable. A unique run identity
+          # keeps "Re-run all jobs" safe without moving an existing tag.
+          CANDIDATE_TAG: candidate-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
 
