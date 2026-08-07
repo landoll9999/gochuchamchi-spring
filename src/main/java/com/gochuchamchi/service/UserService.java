@@ -13,6 +13,7 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public UserDto findById(Long id) {
         return userMapper.findById(id);
@@ -43,6 +44,8 @@ public class UserService {
         user.setNationality(form.getNationality());
         user.setAddress(form.getAddress());
         userMapper.insert(user);
+        auditLogService.success("USER_REGISTERED", user.getId(), user.getUsername(),
+                "USER", String.valueOf(user.getId()), null);
     }
 
     public void updateProfile(Long id, String name, String email, String birthdate,
@@ -56,6 +59,8 @@ public class UserService {
         user.setNationality(nationality);
         user.setAddress(address);
         userMapper.update(user);
+        auditLogService.success("PROFILE_UPDATED", user.getId(), user.getUsername(),
+                "USER", String.valueOf(user.getId()), null);
     }
 
     public void updatePassword(Long id, String currentPassword, String newPassword, String confirmPassword) {
@@ -73,5 +78,8 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
         }
         userMapper.updatePassword(id, passwordEncoder.encode(newPassword));
+        UserDto user = userMapper.findById(id);
+        auditLogService.success("PASSWORD_CHANGED", id, user == null ? null : user.getUsername(),
+                "USER", String.valueOf(id), null);
     }
 }

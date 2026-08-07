@@ -36,6 +36,7 @@ public class AdminUserService {
     private static final DateTimeFormatter UNTIL_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final UserMapper userMapper;
+    private final AuditLogService auditLogService;
 
     public static boolean isSuperAdmin(UserDto user) {
         return user != null && ROLE_SUPERADMIN.equals(user.getRole());
@@ -76,6 +77,9 @@ public class AdminUserService {
         }
 
         userMapper.updateRole(target.getId(), newRole);
+        auditLogService.success("USER_ROLE_CHANGED", actor.getId(), actor.getUsername(),
+                "USER", String.valueOf(target.getId()),
+                "oldRole=" + target.getRole() + ";newRole=" + newRole);
     }
 
     // ===================== 계정 정지 =====================
@@ -98,6 +102,8 @@ public class AdminUserService {
 
         if (permanent) {
             userMapper.suspend(target.getId(), null, true, actor.getUsername());
+            auditLogService.success("USER_SUSPENDED", actor.getId(), actor.getUsername(),
+                    "USER", String.valueOf(target.getId()), "permanent=true");
             return;
         }
 
@@ -111,6 +117,8 @@ public class AdminUserService {
         }
 
         userMapper.suspend(target.getId(), LocalDateTime.now().plusSeconds(total), false, actor.getUsername());
+        auditLogService.success("USER_SUSPENDED", actor.getId(), actor.getUsername(),
+                "USER", String.valueOf(target.getId()), "durationSeconds=" + total);
     }
 
     public void unsuspend(UserDto actor, Long targetId) {
@@ -124,6 +132,8 @@ public class AdminUserService {
         }
 
         userMapper.unsuspend(target.getId());
+        auditLogService.success("USER_UNSUSPENDED", actor.getId(), actor.getUsername(),
+                "USER", String.valueOf(target.getId()), null);
     }
 
     /** 정지된 계정이 로그인을 시도했을 때 보여줄 안내 문구 */

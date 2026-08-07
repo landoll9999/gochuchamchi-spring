@@ -74,7 +74,7 @@
       <div class="empty-state" th:if="${#lists.isEmpty(products)}">등록된 상품이 없습니다.</div>
       <div class="product-card" th:each="p : ${products}" th:onclick="|location.href='@{/shop/}' + ${p.id}|">
         <div class="product-thumb">
-          <img th:if="${p.image != null}" th:src="${p.image}" th:alt="${p.name}">
+          <img th:if="${p.image != null}" th:src="${@s3Service.publicUrl(p.image)}" th:alt="${p.name}">
           <div class="no-img" th:unless="${p.image != null}">No Image</div>
           <span th:if="${p.newItem}" class="badge-new">New</span>
           <div class="wish-btn" onclick="event.stopPropagation();toggleWish(this)">

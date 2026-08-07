@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gochuchamchi.mapper.UserBehaviorLogMapper">
+
+  <insert id="insert">
+    INSERT INTO user_behavior_logs (
+      event_type, user_id, anonymous_id, behavior_session_id,
+      request_path, resource_type, resource_id, metadata,
+      response_status, occurred_at
+    ) VALUES (
+      #{eventType}, #{userId}, #{anonymousId}, #{behaviorSessionId},
+      #{requestPath}, #{resourceType}, #{resourceId}, #{metadata},
+      #{responseStatus}, NOW()
+    )
+  </insert>
+
+</mapper>

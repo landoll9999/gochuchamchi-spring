@@ -7,6 +7,7 @@ import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.ProductSizeMapper;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.S3Service;
+import com.gochuchamchi.service.AuditLogService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,7 @@ public class ShopController {
     private final ProductSizeMapper productSizeMapper;
     private final UserMapper userMapper;
     private final S3Service s3Service;
+    private final AuditLogService auditLogService;
     private static final int PAGE_SIZE = 12;
 
     /** 정렬 드롭다운에서 허용하는 값. 이 밖의 값이 들어오면 기본값(신상품순)으로 되돌린다. */
@@ -34,11 +36,13 @@ public class ShopController {
     private static final String DEFAULT_SORT = "newest";
 
     public ShopController(ProductMapper productMapper, ProductSizeMapper productSizeMapper,
-                          UserMapper userMapper, S3Service s3Service) {
+                          UserMapper userMapper, S3Service s3Service,
+                          AuditLogService auditLogService) {
         this.productMapper = productMapper;
         this.productSizeMapper = productSizeMapper;
         this.userMapper = userMapper;
         this.s3Service = s3Service;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -127,6 +131,9 @@ public class ShopController {
             }
             productSizeMapper.insertSizes(sizeList);
         }
+
+        auditLogService.success("PRODUCT_CREATED", seller.getId(), seller.getUsername(),
+                "PRODUCT", String.valueOf(product.getId()), "category=" + category);
 
         return "redirect:/shop";
     }

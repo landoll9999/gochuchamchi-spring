@@ -68,7 +68,7 @@
   <div class="product-wrap">
     <div class="img-section">
       <div class="main-img">
-        <img th:if="${product.image != null}" th:src="${product.image}" th:alt="${product.name}" id="mainImg">
+        <img th:if="${product.image != null}" th:src="${@s3Service.publicUrl(product.image)}" th:alt="${product.name}" id="mainImg">
         <div class="no-img-main" th:unless="${product.image != null}">No Image</div>
         <span th:if="${product.newItem}" class="badge-new">New</span>
       </div>

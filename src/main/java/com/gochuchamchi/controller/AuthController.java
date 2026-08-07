@@ -3,6 +3,7 @@ package com.gochuchamchi.controller;
 import com.gochuchamchi.config.LoginFailureHandler;
 import com.gochuchamchi.dto.RegisterForm;
 import com.gochuchamchi.service.UserService;
+import com.gochuchamchi.service.AuditLogService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AuthController {
 
     private final UserService userService;
+    private final AuditLogService auditLogService;
 
     @GetMapping("/login")
     public String loginPage(HttpSession session, Model model) {
@@ -57,6 +59,8 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("success", "회원가입이 완료되었습니다. 로그인해주세요.");
             return "redirect:/auth/login";
         } catch (IllegalArgumentException e) {
+            auditLogService.failure("USER_REGISTERED", null, form.getUsername(),
+                    "USER", null, "VALIDATION_FAILED", null);
             model.addAttribute("error", e.getMessage());
             model.addAttribute("form", form);
             return "auth/register";

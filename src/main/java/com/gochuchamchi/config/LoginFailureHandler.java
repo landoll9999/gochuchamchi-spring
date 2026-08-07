@@ -3,6 +3,7 @@ package com.gochuchamchi.config;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
+import com.gochuchamchi.service.AuditLogService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,10 +26,13 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private final UserMapper userMapper;
     private final AdminUserService adminUserService;
+    private final AuditLogService auditLogService;
 
-    public LoginFailureHandler(UserMapper userMapper, AdminUserService adminUserService) {
+    public LoginFailureHandler(UserMapper userMapper, AdminUserService adminUserService,
+                               AuditLogService auditLogService) {
         this.userMapper = userMapper;
         this.adminUserService = adminUserService;
+        this.auditLogService = auditLogService;
         setDefaultFailureUrl("/auth/login?error=true");
     }
 
@@ -38,8 +42,12 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
                                         AuthenticationException exception)
             throws IOException, ServletException {
 
+        String username = request.getParameter("username");
+        String reasonCode = exception instanceof LockedException
+                ? "ACCOUNT_SUSPENDED" : "AUTHENTICATION_FAILED";
+        auditLogService.failure("LOGIN", null, username, "USER", null, reasonCode, null);
+
         if (exception instanceof LockedException) {
-            String username = request.getParameter("username");
             UserDto user = (username == null || username.isBlank()) ? null : userMapper.findByUsername(username);
 
             if (user != null && user.isSuspended()) {

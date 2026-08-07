@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gochuchamchi.mapper.AuditLogMapper">
+
+  <insert id="insert">
+    INSERT INTO audit_logs (
+      event_type, outcome, actor_user_id, actor_username,
+      target_type, target_id, request_method, request_path,
+      ip_address, user_agent, reason_code, details, occurred_at
+    ) VALUES (
+      #{eventType}, #{outcome}, #{actorUserId}, #{actorUsername},
+      #{targetType}, #{targetId}, #{requestMethod}, #{requestPath},
+      #{ipAddress}, #{userAgent}, #{reasonCode}, #{details}, NOW()
+    )
+  </insert>
+
+</mapper>

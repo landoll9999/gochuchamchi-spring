@@ -3,6 +3,7 @@ package com.gochuchamchi.config;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
+import com.gochuchamchi.service.AuditLogService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,13 @@ public class SuspendedUserFilter extends OncePerRequestFilter {
 
     private final UserMapper userMapper;
     private final AdminUserService adminUserService;
+    private final AuditLogService auditLogService;
 
-    public SuspendedUserFilter(UserMapper userMapper, AdminUserService adminUserService) {
+    public SuspendedUserFilter(UserMapper userMapper, AdminUserService adminUserService,
+                               AuditLogService auditLogService) {
         this.userMapper = userMapper;
         this.adminUserService = adminUserService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -49,6 +53,8 @@ public class SuspendedUserFilter extends OncePerRequestFilter {
 
             if (user != null && user.isSuspended()) {
                 String message = adminUserService.suspensionMessage(user);
+                auditLogService.failure("ACCESS_BLOCKED", user.getId(), user.getUsername(),
+                        "USER", String.valueOf(user.getId()), "ACCOUNT_SUSPENDED", null);
                 new SecurityContextLogoutHandler().logout(request, response, auth);  // 세션 무효화
                 // 안내는 새 세션에 담아 로그인 페이지가 한 번 읽고 지운다
                 request.getSession(true).setAttribute(LoginFailureHandler.SUSPENDED_MESSAGE, message);

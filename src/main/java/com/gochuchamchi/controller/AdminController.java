@@ -6,6 +6,7 @@ import com.gochuchamchi.mapper.NoticeMapper;
 import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
+import com.gochuchamchi.service.AuditLogService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -24,13 +25,16 @@ public class AdminController {
     private final NoticeMapper noticeMapper;
     private final ProductMapper productMapper;
     private final AdminUserService adminUserService;
+    private final AuditLogService auditLogService;
 
     public AdminController(UserMapper userMapper, NoticeMapper noticeMapper,
-                           ProductMapper productMapper, AdminUserService adminUserService) {
+                           ProductMapper productMapper, AdminUserService adminUserService,
+                           AuditLogService auditLogService) {
         this.userMapper = userMapper;
         this.noticeMapper = noticeMapper;
         this.productMapper = productMapper;
         this.adminUserService = adminUserService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -68,6 +72,9 @@ public class AdminController {
             adminUserService.changeRole(actor(userDetails), id, role);
             ra.addFlashAttribute("success", "권한이 변경되었습니다.");
         } catch (IllegalArgumentException e) {
+            UserDto actor = actor(userDetails);
+            auditLogService.failure("USER_ROLE_CHANGED", actor.getId(), actor.getUsername(),
+                    "USER", String.valueOf(id), "POLICY_REJECTED", "requestedRole=" + role);
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/users";
@@ -88,6 +95,9 @@ public class AdminController {
                     ? "해당 계정을 영구 정지했습니다."
                     : "해당 계정을 정지했습니다.");
         } catch (IllegalArgumentException e) {
+            UserDto actor = actor(userDetails);
+            auditLogService.failure("USER_SUSPENDED", actor.getId(), actor.getUsername(),
+                    "USER", String.valueOf(id), "POLICY_REJECTED", "permanent=" + permanent);
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/users";
@@ -101,6 +111,9 @@ public class AdminController {
             adminUserService.unsuspend(actor(userDetails), id);
             ra.addFlashAttribute("success", "계정 정지를 해제했습니다.");
         } catch (IllegalArgumentException e) {
+            UserDto actor = actor(userDetails);
+            auditLogService.failure("USER_UNSUSPENDED", actor.getId(), actor.getUsername(),
+                    "USER", String.valueOf(id), "POLICY_REJECTED", null);
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/users";
@@ -133,17 +146,25 @@ public class AdminController {
         notice.setAuthor(userDetails.getUsername());
         if (notice.getId() == null) {
             noticeMapper.insert(notice);
+            auditLogService.successForUsername("NOTICE_CREATED", userDetails.getUsername(),
+                    "NOTICE", String.valueOf(notice.getId()), "pinned=" + notice.isPinned());
             ra.addFlashAttribute("success", "공지사항이 등록되었습니다.");
         } else {
             noticeMapper.update(notice);
+            auditLogService.successForUsername("NOTICE_UPDATED", userDetails.getUsername(),
+                    "NOTICE", String.valueOf(notice.getId()), "pinned=" + notice.isPinned());
             ra.addFlashAttribute("success", "공지사항이 수정되었습니다.");
         }
         return "redirect:/admin/notices";
     }
 
     @PostMapping("/notices/{id}/delete")
-    public String noticeDelete(@PathVariable Long id, RedirectAttributes ra) {
+    public String noticeDelete(@PathVariable Long id,
+                               @AuthenticationPrincipal UserDetails userDetails,
+                               RedirectAttributes ra) {
         noticeMapper.delete(id);
+        auditLogService.successForUsername("NOTICE_DELETED", userDetails.getUsername(),
+                "NOTICE", String.valueOf(id), null);
         ra.addFlashAttribute("success", "공지사항이 삭제되었습니다.");
         return "redirect:/admin/notices";
     }
@@ -157,8 +178,12 @@ public class AdminController {
     }
 
     @PostMapping("/products/{id}/delete")
-    public String productDelete(@PathVariable Long id, RedirectAttributes ra) {
+    public String productDelete(@PathVariable Long id,
+                                @AuthenticationPrincipal UserDetails userDetails,
+                                RedirectAttributes ra) {
         productMapper.delete(id);
+        auditLogService.successForUsername("PRODUCT_DELETED", userDetails.getUsername(),
+                "PRODUCT", String.valueOf(id), null);
         ra.addFlashAttribute("success", "상품이 삭제되었습니다.");
         return "redirect:/admin/products";
     }

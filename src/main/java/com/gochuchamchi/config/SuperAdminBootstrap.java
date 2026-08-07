@@ -3,6 +3,7 @@ package com.gochuchamchi.config;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
+import com.gochuchamchi.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class SuperAdminBootstrap implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(SuperAdminBootstrap.class);
 
     private final UserMapper userMapper;
+    private final AuditLogService auditLogService;
 
     @Value("${app.superadmin.username:${SUPERADMIN_USERNAME:}}")
     private String superAdminUsername;
@@ -50,5 +52,8 @@ public class SuperAdminBootstrap implements ApplicationRunner {
 
         userMapper.updateRole(user.getId(), AdminUserService.ROLE_SUPERADMIN);
         log.warn("[SUPERADMIN] '{}' 계정의 권한을 '{}' → superadmin 으로 승격했습니다.", username, user.getRole());
+        auditLogService.success("SUPERADMIN_BOOTSTRAP_PROMOTION", user.getId(), username,
+                "USER", String.valueOf(user.getId()),
+                "oldRole=" + user.getRole() + ";newRole=superadmin");
     }
 }
