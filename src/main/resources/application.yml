@@ -51,5 +51,6 @@ server:
       timeout: 3600
 logging:
   level:
-    com.gochuchamchi: DEBUG
-    org.mybatis: DEBUG
+    com.gochuchamchi: ${APP_LOG_LEVEL:INFO}
+    org.mybatis: ${MYBATIS_LOG_LEVEL:WARN}
+    APPLICATION_SECURITY_JSON: INFO

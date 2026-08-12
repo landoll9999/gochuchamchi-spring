@@ -3,6 +3,7 @@ package com.gochuchamchi.service;
 import com.gochuchamchi.dto.AuditLogDto;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.logging.LogRequestContext;
+import com.gochuchamchi.logging.StructuredApplicationLogService;
 import com.gochuchamchi.mapper.AuditLogMapper;
 import com.gochuchamchi.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ public class AuditLogService {
 
     private final AuditLogMapper auditLogMapper;
     private final UserMapper userMapper;
+    private final StructuredApplicationLogService structuredApplicationLogService;
 
     public void success(String eventType, Long actorUserId, String actorUsername,
                         String targetType, String targetId, String details) {
@@ -80,10 +82,7 @@ public class AuditLogService {
                 .build();
 
         // 중앙 로그 수집기가 DB와 별개로 감사 사건을 가져갈 수 있도록 항상 구조화된 한 줄을 남긴다.
-        log.info("AUDIT event={} outcome={} actorUserId={} actorUsername={} targetType={} targetId={} method={} path={} ip={} reason={} details={}",
-                entry.getEventType(), entry.getOutcome(), entry.getActorUserId(), entry.getActorUsername(),
-                entry.getTargetType(), entry.getTargetId(), entry.getRequestMethod(), entry.getRequestPath(),
-                entry.getIpAddress(), entry.getReasonCode(), entry.getDetails());
+        structuredApplicationLogService.recordSecurityEvent(entry);
 
         try {
             auditLogMapper.insert(entry);

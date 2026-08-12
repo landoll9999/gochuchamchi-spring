@@ -6,6 +6,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 public final class LogRequestContext {
 
+    public static final String REQUEST_ID_ATTRIBUTE = LogRequestContext.class.getName() + ".requestId";
+
     private LogRequestContext() {
     }
 
@@ -25,7 +27,34 @@ public final class LogRequestContext {
     }
 
     public static String remoteAddress(HttpServletRequest request) {
-        return request == null ? null : sanitize(request.getRemoteAddr(), 45);
+        return clientAddress(request);
+    }
+
+    public static String clientAddress(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            String[] addresses = forwardedFor.split(",");
+            // CloudFront appends the viewer IP and ALB appends the CloudFront edge IP.
+            // The second value from the right ignores viewer-supplied spoofed prefixes.
+            int index = addresses.length >= 2 ? addresses.length - 2 : 0;
+            return sanitize(addresses[index], 45);
+        }
+        return sanitize(request.getRemoteAddr(), 45);
+    }
+
+    public static String requestId(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object value = request.getAttribute(REQUEST_ID_ATTRIBUTE);
+        return value == null ? null : sanitize(value.toString(), 64);
+    }
+
+    public static String cloudFrontRequestId(HttpServletRequest request) {
+        return request == null ? null : sanitize(request.getHeader("X-Amz-Cf-Id"), 128);
     }
 
     public static String userAgent(HttpServletRequest request) {

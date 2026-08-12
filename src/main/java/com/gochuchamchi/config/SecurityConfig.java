@@ -1,6 +1,7 @@
 package com.gochuchamchi.config;
 
 import com.gochuchamchi.mapper.UserMapper;
+import com.gochuchamchi.logging.StructuredApplicationLogService;
 import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.AuditLogService;
 import com.gochuchamchi.service.CustomUserDetailsService;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +31,7 @@ public class SecurityConfig {
     private final AdminUserService adminUserService;
     private final UserBehaviorLogService behaviorLogService;
     private final AuditLogService auditLogService;
+    private final StructuredApplicationLogService structuredApplicationLogService;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
                           LoginFailureHandler loginFailureHandler,
@@ -38,7 +41,8 @@ public class SecurityConfig {
                           UserMapper userMapper,
                           AdminUserService adminUserService,
                           UserBehaviorLogService behaviorLogService,
-                          AuditLogService auditLogService) {
+                          AuditLogService auditLogService,
+                          StructuredApplicationLogService structuredApplicationLogService) {
         this.userDetailsService = userDetailsService;
         this.loginFailureHandler = loginFailureHandler;
         this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -48,6 +52,7 @@ public class SecurityConfig {
         this.adminUserService = adminUserService;
         this.behaviorLogService = behaviorLogService;
         this.auditLogService = auditLogService;
+        this.structuredApplicationLogService = structuredApplicationLogService;
     }
 
     @Bean
@@ -85,6 +90,9 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler)
             )
             .userDetailsService(userDetailsService)
+            // Wrap authentication, authorization and controller handling with one JSON access log.
+            .addFilterBefore(new HttpAccessLoggingFilter(structuredApplicationLogService),
+                    UsernamePasswordAuthenticationFilter.class)
             // 로그인해 있는 동안 정지되면 다음 요청에서 바로 끊는다.
             // (필터를 @Component 로 두면 서블릿 체인에도 자동 등록되어 두 번 도므로 여기서 직접 만든다)
             .addFilterAfter(new SuspendedUserFilter(userMapper, adminUserService, auditLogService), AuthorizationFilter.class)
