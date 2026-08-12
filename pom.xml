@@ -22,7 +22,25 @@
     <java.version>17</java.version>
     <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
     <netty.version>4.1.136.Final</netty.version>
+    <awssdk.version>2.25.6</awssdk.version>
   </properties>
+
+  <!--
+    AWS SDK v2 BOM — s3 와 rds 의 버전이 어긋나면 공통 모듈(auth, regions, http-client)이
+    "가까운 것 우선"으로 섞여 NoSuchMethodError 로 터진다. 두 아티팩트를 한 곳에서
+    묶어두려고 BOM 을 넣었고, 버전은 기존에 s3 가 쓰던 2.25.6 을 그대로 유지했다.
+  -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- Spring Boot Web (내장 Tomcat 포함) -->
@@ -30,12 +48,27 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-<dependency>
-    <groupId>software.amazon.awssdk</groupId>
-    <artifactId>s3</artifactId>
-    <version>2.25.6</version>
-</dependency>
-<!-- Redis 세션 클러스터링 (여러 Pod가 세션 공유) -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+
+    <!--
+      RDS IAM 토큰 인증 — 코드에서 직접 쓰지 않는다. MariaDB Connector/J 의
+      credentialType=AWS-IAM 플러그인이 리플렉션으로 찾아 쓰는 런타임 의존성이다.
+      (없으면 접속 시 "Identity plugin 'AWS-IAM' is used without having AWS SDK in
+       classpath. Please add 'software.amazon.awssdk:rds' to classpath" 로 실패)
+      플러그인은 v2(software.amazon.awssdk)만 참조한다. v1(com.amazonaws)은 안 된다.
+      토큰 유효 15분 / 드라이버 캐시 10분이라 갱신 로직을 앱이 가질 필요가 없다.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>rds</artifactId>
+      <!-- 앱 코드가 import 하지 않는다는 사실을 스코프로 못박아 둔다 (드라이버와 동일) -->
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Redis 세션 클러스터링 (여러 Pod가 세션 공유) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-redis</artifactId>
