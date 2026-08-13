@@ -19,6 +19,7 @@
     <div class="login-box">
       <div class="page-title">Welcome back <span class="title-main">Login</span></div>
       <div class="msg-error" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+      <div class="msg-error" th:if="${throttledMessage}" th:text="${throttledMessage}"></div>
       <!-- 정지된 계정: alert 으로 한 번 알리고, 닫은 뒤에도 읽을 수 있게 화면에도 남긴다 -->
       <div class="msg-error" th:if="${suspendedMessage}" th:text="${suspendedMessage}"></div>
       <div class="msg-success" th:if="${success}" th:text="${success}"></div>

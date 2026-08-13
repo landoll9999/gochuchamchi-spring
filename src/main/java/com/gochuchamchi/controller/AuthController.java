@@ -33,6 +33,11 @@ public class AuthController {
             model.addAttribute("suspendedMessage", suspended);
             session.removeAttribute(LoginFailureHandler.SUSPENDED_MESSAGE);
         }
+        Object throttled = session.getAttribute(LoginFailureHandler.THROTTLED_MESSAGE);
+        if (throttled != null) {
+            model.addAttribute("throttledMessage", throttled);
+            session.removeAttribute(LoginFailureHandler.THROTTLED_MESSAGE);
+        }
         return "auth/login";
     }
 
