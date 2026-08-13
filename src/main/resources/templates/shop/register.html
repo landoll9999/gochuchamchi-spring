@@ -25,6 +25,9 @@
     <!-- 한글은 title-ko(Noto Sans KR). title-main 은 한글 글리프가 없는 Permanent Marker 라
          한글을 넣으면 바탕/궁서 계열로 떨어져 이 제목만 튀어 보였다. -->
     <div class="page-title">New Product <span class="title-ko">상품 등록</span></div>
+    <div th:if="${error}" role="alert" style="margin:0 0 20px;padding:12px 14px;border:1px solid #b42318;color:#b42318;font-size:14px;">
+      <span th:text="${error}"></span>
+    </div>
     <form th:action="@{/shop/register}" method="post" enctype="multipart/form-data" id="productForm">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <div class="row-2">
@@ -89,7 +92,7 @@
       </div>
       <div class="form-group">
         <label>상품 이미지</label>
-        <input type="file" name="imageFile" accept="image/*" class="form-control" style="cursor:pointer;" onchange="previewImg(this)">
+        <input type="file" name="imageFile" accept="image/jpeg,image/png" class="form-control" style="cursor:pointer;" onchange="previewImg(this)">
         <div id="imgPreview" style="display:none;margin-top:12px;">
           <img id="previewImg" style="max-width:200px;max-height:200px;object-fit:cover;border:1px solid #e0e0e0;">
         </div>

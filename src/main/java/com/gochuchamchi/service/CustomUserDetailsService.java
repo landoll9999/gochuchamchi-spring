@@ -17,10 +17,12 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserMapper userMapper;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // 로그인 폼이 username(아이디)을 받으므로 findByUsername으로 조회
+        loginAttemptService.ensureNotThrottled(username);
         UserDto user = userMapper.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);

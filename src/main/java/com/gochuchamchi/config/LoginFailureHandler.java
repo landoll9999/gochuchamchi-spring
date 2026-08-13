@@ -4,6 +4,7 @@ import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.AuditLogService;
+import com.gochuchamchi.service.LoginAttemptService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,16 +24,19 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     /** 로그인 페이지가 한 번 읽고 지우는 세션 키 */
     public static final String SUSPENDED_MESSAGE = "SUSPENDED_MESSAGE";
+    public static final String THROTTLED_MESSAGE = "THROTTLED_MESSAGE";
 
     private final UserMapper userMapper;
     private final AdminUserService adminUserService;
     private final AuditLogService auditLogService;
+    private final LoginAttemptService loginAttemptService;
 
     public LoginFailureHandler(UserMapper userMapper, AdminUserService adminUserService,
-                               AuditLogService auditLogService) {
+                               AuditLogService auditLogService, LoginAttemptService loginAttemptService) {
         this.userMapper = userMapper;
         this.adminUserService = adminUserService;
         this.auditLogService = auditLogService;
+        this.loginAttemptService = loginAttemptService;
         setDefaultFailureUrl("/auth/login?error=true");
     }
 
@@ -43,6 +47,17 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             throws IOException, ServletException {
 
         String username = request.getParameter("username");
+        if (loginAttemptService.isThrottled(username)) {
+            auditLogService.failure("LOGIN", null, username, "USER", null, "LOGIN_THROTTLED", null);
+            request.getSession().setAttribute(THROTTLED_MESSAGE,
+                    "로그인 시도가 많습니다. 잠시 후 다시 시도해 주세요.");
+            getRedirectStrategy().sendRedirect(request, response, "/auth/login?throttled=true");
+            return;
+        }
+
+        if (!(exception instanceof LockedException)) {
+            loginAttemptService.recordFailure(username);
+        }
         String reasonCode = exception instanceof LockedException
                 ? "ACCOUNT_SUSPENDED" : "AUTHENTICATION_FAILED";
         auditLogService.failure("LOGIN", null, username, "USER", null, reasonCode, null);
