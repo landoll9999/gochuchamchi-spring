@@ -1,12 +1,14 @@
 package com.gochuchamchi.controller;
 
 import com.gochuchamchi.dto.NoticeDto;
+import com.gochuchamchi.dto.ProductDto;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.NoticeMapper;
 import com.gochuchamchi.mapper.ProductMapper;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.AuditLogService;
+import com.gochuchamchi.service.S3Service;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -26,15 +28,17 @@ public class AdminController {
     private final ProductMapper productMapper;
     private final AdminUserService adminUserService;
     private final AuditLogService auditLogService;
+    private final S3Service s3Service;
 
     public AdminController(UserMapper userMapper, NoticeMapper noticeMapper,
                            ProductMapper productMapper, AdminUserService adminUserService,
-                           AuditLogService auditLogService) {
+                           AuditLogService auditLogService, S3Service s3Service) {
         this.userMapper = userMapper;
         this.noticeMapper = noticeMapper;
         this.productMapper = productMapper;
         this.adminUserService = adminUserService;
         this.auditLogService = auditLogService;
+        this.s3Service = s3Service;
     }
 
     @GetMapping
@@ -173,7 +177,9 @@ public class AdminController {
 
     @GetMapping("/products")
     public String products(Model model) {
-        model.addAttribute("products", productMapper.findAll(0, 100, "newest", ""));
+        List<ProductDto> products = productMapper.findAll(0, 100, "newest", "");
+        products.forEach(p -> p.setImageUrl(s3Service.publicUrl(p.getImage())));
+        model.addAttribute("products", products);
         return "admin/products";
     }
 

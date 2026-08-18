@@ -41,7 +41,7 @@
           <td colspan="9" style="text-align:center;padding:60px;color:#ccc;">등록된 상품이 없습니다.</td>
         </tr>
         <tr th:each="p : ${products}">
-          <td><img th:if="${p.image != null}" th:src="${@s3Service.publicUrl(p.image)}" class="product-img" th:alt="${p.name}">
+          <td><img th:if="${p.image != null}" th:src="${p.imageUrl}" class="product-img" th:alt="${p.name}">
               <div th:unless="${p.image != null}" class="product-img" style="display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;">No Img</div></td>
           <td th:text="${p.id}"></td>
           <td th:text="${p.brand}"></td>

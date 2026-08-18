@@ -56,7 +56,9 @@ public class ShopController {
 
         int offset = (page - 1) * PAGE_SIZE;
         int total = productMapper.countAll(category);
-        model.addAttribute("products", productMapper.findAll(offset, PAGE_SIZE, sort, category));
+        List<ProductDto> products = productMapper.findAll(offset, PAGE_SIZE, sort, category);
+        products.forEach(p -> p.setImageUrl(s3Service.publicUrl(p.getImage())));
+        model.addAttribute("products", products);
         model.addAttribute("totalCount", total);
         model.addAttribute("totalPages", (int) Math.ceil((double) total / PAGE_SIZE));
         model.addAttribute("currentPage", page);
@@ -75,6 +77,7 @@ public class ShopController {
     public String detail(@PathVariable Long id, Model model) {
         ProductDto product = productMapper.findById(id);
         if (product == null) return "redirect:/shop";
+        product.setImageUrl(s3Service.publicUrl(product.getImage()));
         productMapper.incrementViews(id);
         List<ProductSizeDto> sizes = productSizeMapper.findByProductId(id);
         product.setSizes(sizes.stream().map(s -> {
