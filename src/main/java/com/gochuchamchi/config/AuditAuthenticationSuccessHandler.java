@@ -1,6 +1,7 @@
 package com.gochuchamchi.config;
 
 import com.gochuchamchi.service.AuditLogService;
+import com.gochuchamchi.service.LoginAttemptService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,10 +17,12 @@ import java.io.IOException;
 public class AuditAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final AuditLogService auditLogService;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        loginAttemptService.reset(authentication.getName());
         auditLogService.successForUsername("LOGIN", authentication.getName(),
                 "USER", null, null);
         setDefaultTargetUrl("/");

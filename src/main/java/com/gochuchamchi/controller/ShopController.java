@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -102,7 +103,8 @@ public class ShopController {
                            @RequestParam(required = false) String description,
                            @RequestParam(required = false) MultipartFile imageFile,
                            @RequestParam(required = false) List<String> sizes,
-                           @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+                           @AuthenticationPrincipal UserDetails userDetails,
+                           RedirectAttributes redirectAttributes) throws Exception {
         UserDto seller = userMapper.findByUsername(userDetails.getUsername());
 
         ProductDto product = new ProductDto();
@@ -115,7 +117,12 @@ public class ShopController {
         product.setDescription(description);
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            product.setImage(s3Service.upload(imageFile));
+            try {
+                product.setImage(s3Service.upload(imageFile));
+            } catch (IllegalArgumentException e) {
+                redirectAttributes.addFlashAttribute("error", e.getMessage());
+                return "redirect:/shop/register-form";
+            }
         }
         productMapper.insert(product);
 
