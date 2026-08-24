@@ -2,40 +2,48 @@ package com.gochuchamchi.controller;
 
 import com.gochuchamchi.dto.NoticeDto;
 import com.gochuchamchi.dto.ProductDto;
+import com.gochuchamchi.dto.ProductSizeDto;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.NoticeMapper;
 import com.gochuchamchi.mapper.ProductMapper;
+import com.gochuchamchi.mapper.ProductSizeMapper;
 import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.AuditLogService;
 import com.gochuchamchi.service.S3Service;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Controller
+@Profile("admin")
 @RequestMapping("/admin")
 public class AdminController {
 
     private final UserMapper userMapper;
     private final NoticeMapper noticeMapper;
     private final ProductMapper productMapper;
+    private final ProductSizeMapper productSizeMapper;
     private final AdminUserService adminUserService;
     private final AuditLogService auditLogService;
     private final S3Service s3Service;
 
     public AdminController(UserMapper userMapper, NoticeMapper noticeMapper,
-                           ProductMapper productMapper, AdminUserService adminUserService,
+                           ProductMapper productMapper, ProductSizeMapper productSizeMapper,
+                           AdminUserService adminUserService,
                            AuditLogService auditLogService, S3Service s3Service) {
         this.userMapper = userMapper;
         this.noticeMapper = noticeMapper;
         this.productMapper = productMapper;
+        this.productSizeMapper = productSizeMapper;
         this.adminUserService = adminUserService;
         this.auditLogService = auditLogService;
         this.s3Service = s3Service;
@@ -174,6 +182,62 @@ public class AdminController {
     }
 
     // ===================== 상품 =====================
+
+    @GetMapping("/products/new")
+    public String productNewForm(Model model) {
+        model.addAttribute("adminMode", true);
+        return "shop/register";
+    }
+
+    @PostMapping("/products/create")
+    public String productCreate(@RequestParam String brand,
+                                @RequestParam String name,
+                                @RequestParam String category,
+                                @RequestParam int price,
+                                @RequestParam(defaultValue = "0") int stock,
+                                @RequestParam(required = false) String description,
+                                @RequestParam(required = false) MultipartFile imageFile,
+                                @RequestParam(required = false) List<String> sizes,
+                                @AuthenticationPrincipal UserDetails userDetails,
+                                RedirectAttributes ra) throws Exception {
+        UserDto administrator = actor(userDetails);
+        ProductDto product = new ProductDto();
+        product.setSellerId(administrator.getId());
+        product.setBrand(brand);
+        product.setName(name);
+        product.setCategory(category);
+        product.setPrice(price);
+        product.setStock(stock);
+        product.setDescription(description);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                product.setImage(s3Service.upload(imageFile));
+            } catch (IllegalArgumentException e) {
+                ra.addFlashAttribute("error", e.getMessage());
+                return "redirect:/admin/products/new";
+            }
+        }
+        productMapper.insert(product);
+
+        if (sizes != null && !sizes.isEmpty()) {
+            List<ProductSizeDto> sizeList = new java.util.ArrayList<>();
+            for (int i = 0; i < sizes.size(); i++) {
+                ProductSizeDto size = new ProductSizeDto();
+                size.setProductId(product.getId());
+                size.setSizeName(sizes.get(i));
+                size.setStock(0);
+                size.setSortOrder(i);
+                sizeList.add(size);
+            }
+            productSizeMapper.insertSizes(sizeList);
+        }
+
+        auditLogService.success("PRODUCT_CREATED", administrator.getId(), administrator.getUsername(),
+                "PRODUCT", String.valueOf(product.getId()), "category=" + category);
+        ra.addFlashAttribute("success", "상품이 등록되었습니다.");
+        return "redirect:/admin/products";
+    }
 
     @GetMapping("/products")
     public String products(Model model) {

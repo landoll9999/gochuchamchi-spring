@@ -23,46 +23,46 @@
   </resultMap>
 
   <select id="findByUsername" resultMap="userResultMap">
-    SELECT * FROM users WHERE username = #{username}
+    SELECT * FROM ${userTable} WHERE username = #{username}
   </select>
 
   <select id="findById" resultMap="userResultMap">
-    SELECT * FROM users WHERE id = #{id}
+    SELECT * FROM ${userTable} WHERE id = #{id}
   </select>
 
   <select id="existsByUsername" resultType="boolean">
-    SELECT COUNT(*) > 0 FROM users WHERE username = #{username}
+    SELECT COUNT(*) > 0 FROM ${userTable} WHERE username = #{username}
   </select>
 
   <select id="existsByEmail" resultType="boolean">
-    SELECT COUNT(*) > 0 FROM users WHERE email = #{email}
+    SELECT COUNT(*) > 0 FROM ${userTable} WHERE email = #{email}
   </select>
 
   <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-    INSERT INTO users (username, name, email, password, phone, birthdate, gender, nationality, address, role, created_at)
+    INSERT INTO ${userTable} (username, name, email, password, phone, birthdate, gender, nationality, address, role, created_at)
     VALUES (#{username}, #{name}, #{email}, #{password}, #{phone}, #{birthdate}, #{gender}, #{nationality}, #{address}, 'user', NOW())
   </insert>
 
   <update id="update">
-    UPDATE users SET name=#{name}, email=#{email}, birthdate=#{birthdate},
+    UPDATE ${userTable} SET name=#{name}, email=#{email}, birthdate=#{birthdate},
     phone=#{phone}, gender=#{gender}, nationality=#{nationality}, address=#{address}
     WHERE id=#{id}
   </update>
 
   <update id="updatePassword">
-    UPDATE users SET password=#{password} WHERE id=#{id}
+    UPDATE ${userTable} SET password=#{password} WHERE id=#{id}
   </update>
 
   <select id="findAllForAdmin" resultMap="userResultMap">
-    SELECT * FROM users ORDER BY created_at DESC
+    SELECT * FROM ${userTable} ORDER BY created_at DESC
   </select>
 
   <update id="updateRole">
-    UPDATE users SET role=#{role} WHERE id=#{id}
+    UPDATE ${userTable} SET role=#{role} WHERE id=#{id}
   </update>
 
   <update id="suspend">
-    UPDATE users SET
+    UPDATE ${userTable} SET
       suspended_until = #{until,jdbcType=TIMESTAMP},
       suspended_permanent = #{permanent},
       suspended_at = NOW(),
@@ -71,7 +71,7 @@
   </update>
 
   <update id="unsuspend">
-    UPDATE users SET
+    UPDATE ${userTable} SET
       suspended_until = NULL,
       suspended_permanent = 0,
       suspended_at = NULL,

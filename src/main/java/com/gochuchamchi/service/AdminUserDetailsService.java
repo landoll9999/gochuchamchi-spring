@@ -3,41 +3,46 @@ package com.gochuchamchi.service;
 import com.gochuchamchi.dto.UserDto;
 import com.gochuchamchi.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
-@Profile("web")
+@Profile("admin")
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
+public class AdminUserDetailsService implements UserDetailsService {
+
+    private static final Set<String> ADMIN_ROLES = Set.of(
+            AdminUserService.ROLE_ADMIN,
+            AdminUserService.ROLE_SUPERADMIN
+    );
 
     private final UserMapper userMapper;
     private final LoginAttemptService loginAttemptService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 로그인 폼이 username(아이디)을 받으므로 findByUsername으로 조회
         loginAttemptService.ensureNotThrottled(username);
         UserDto user = userMapper.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
+        if (user == null || !ADMIN_ROLES.contains(user.getRole())) {
+            // Do not disclose whether the account exists or merely lacks an admin role.
+            throw new UsernameNotFoundException("관리자 계정을 찾을 수 없습니다");
         }
-        String role = user.getRole() == null ? "user" : user.getRole();
         return new User(
-            user.getUsername(),  // principal name을 username으로 통일
-            user.getPassword(),
-            true,                        // enabled
-            true,                        // accountNonExpired
-            true,                        // credentialsNonExpired
-            !user.isSuspended(),         // accountNonLocked — 정지된 계정은 LockedException 으로 로그인 차단
-            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
+                user.getUsername(),
+                user.getPassword(),
+                true,
+                true,
+                true,
+                !user.isSuspended(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()))
         );
     }
 }
