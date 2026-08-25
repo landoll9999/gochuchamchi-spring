@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
  * 승격만 하고 강등은 안 하며, 이미 superadmin 이면 건너뛴다.
  */
 @Component
+@Profile("admin")
 @RequiredArgsConstructor
 public class SuperAdminBootstrap implements ApplicationRunner {
 

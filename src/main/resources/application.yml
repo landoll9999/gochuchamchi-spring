@@ -11,6 +11,8 @@ cloud:
     region:
       static: ${CLOUD_AWS_REGION_STATIC:ap-northeast-2}
 spring:
+  profiles:
+    default: web
   datasource:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/gochuchamchi?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: ${DB_USER:root}
@@ -23,7 +25,7 @@ spring:
   session:
     store-type: redis
     redis:
-      namespace: gochuchamchi:session
+      namespace: ${SPRING_SESSION_REDIS_NAMESPACE:gochuchamchi:web-session}
     timeout: 3600
   servlet:
     multipart:
@@ -41,6 +43,8 @@ mybatis:
     map-underscore-to-camel-case: true
     default-fetch-size: 100
     default-statement-timeout: 30
+    variables:
+      userTable: web_users
 server:
   port: 8080
   servlet:
@@ -49,8 +53,22 @@ server:
       force: true
     session:
       timeout: 3600
+      cookie:
+        name: ${SESSION_COOKIE_NAME:WEBSESSION}
+        http-only: true
+        secure: ${SESSION_COOKIE_SECURE:false}
+        same-site: ${SESSION_COOKIE_SAME_SITE:lax}
 logging:
   level:
     com.gochuchamchi: ${APP_LOG_LEVEL:INFO}
     org.mybatis: ${MYBATIS_LOG_LEVEL:WARN}
     APPLICATION_SECURITY_JSON: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: admin
+mybatis:
+  configuration:
+    variables:
+      userTable: users

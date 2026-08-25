@@ -1,11 +1,10 @@
 package com.gochuchamchi.config;
 
-import com.gochuchamchi.mapper.UserMapper;
 import com.gochuchamchi.logging.StructuredApplicationLogService;
+import com.gochuchamchi.mapper.UserMapper;
+import com.gochuchamchi.service.AdminUserDetailsService;
 import com.gochuchamchi.service.AdminUserService;
 import com.gochuchamchi.service.AuditLogService;
-import com.gochuchamchi.service.CustomUserDetailsService;
-import com.gochuchamchi.service.UserBehaviorLogService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -17,32 +16,30 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@Profile("web")
+@Profile("admin")
 @EnableWebSecurity
 @EnableMethodSecurity
-public class SecurityConfig {
+public class AdminSecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
+    private final AdminUserDetailsService userDetailsService;
     private final LoginFailureHandler loginFailureHandler;
-    private final AuditAuthenticationSuccessHandler authenticationSuccessHandler;
-    private final AuditLogoutSuccessHandler logoutSuccessHandler;
+    private final AdminAuthenticationSuccessHandler authenticationSuccessHandler;
+    private final AdminLogoutSuccessHandler logoutSuccessHandler;
     private final AuditAccessDeniedHandler accessDeniedHandler;
     private final UserMapper userMapper;
     private final AdminUserService adminUserService;
-    private final UserBehaviorLogService behaviorLogService;
     private final AuditLogService auditLogService;
     private final StructuredApplicationLogService structuredApplicationLogService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          LoginFailureHandler loginFailureHandler,
-                          AuditAuthenticationSuccessHandler authenticationSuccessHandler,
-                          AuditLogoutSuccessHandler logoutSuccessHandler,
-                          AuditAccessDeniedHandler accessDeniedHandler,
-                          UserMapper userMapper,
-                          AdminUserService adminUserService,
-                          UserBehaviorLogService behaviorLogService,
-                          AuditLogService auditLogService,
-                          StructuredApplicationLogService structuredApplicationLogService) {
+    public AdminSecurityConfig(AdminUserDetailsService userDetailsService,
+                               LoginFailureHandler loginFailureHandler,
+                               AdminAuthenticationSuccessHandler authenticationSuccessHandler,
+                               AdminLogoutSuccessHandler logoutSuccessHandler,
+                               AuditAccessDeniedHandler accessDeniedHandler,
+                               UserMapper userMapper,
+                               AdminUserService adminUserService,
+                               AuditLogService auditLogService,
+                               StructuredApplicationLogService structuredApplicationLogService) {
         this.userDetailsService = userDetailsService;
         this.loginFailureHandler = loginFailureHandler;
         this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -50,20 +47,17 @@ public class SecurityConfig {
         this.accessDeniedHandler = accessDeniedHandler;
         this.userMapper = userMapper;
         this.adminUserService = adminUserService;
-        this.behaviorLogService = behaviorLogService;
         this.auditLogService = auditLogService;
         this.structuredApplicationLogService = structuredApplicationLogService;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/internal/health", "/auth/**", "/shop/**", "/notice/**",
-                                 "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                .requestMatchers("/admin/**").denyAll()
-                .requestMatchers("/mypage/**").authenticated()
-                .anyRequest().authenticated()
+                .requestMatchers("/internal/health", "/auth/login", "/css/**", "/js/**", "/images/**", "/error/**").permitAll()
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
+                .anyRequest().denyAll()
             )
             .formLogin(form -> form
                 .loginPage("/auth/login")
@@ -71,27 +65,22 @@ public class SecurityConfig {
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler(authenticationSuccessHandler)
-                .failureHandler(loginFailureHandler)   // 정지 계정이면 안내 문구를 세션에 담아 로그인 페이지로
+                .failureHandler(loginFailureHandler)
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")
                 .logoutSuccessHandler(logoutSuccessHandler)
                 .invalidateHttpSession(true)
-                .deleteCookies("WEBSESSION")
+                .deleteCookies("ADMINSESSION")
                 .permitAll()
             )
-            .exceptionHandling(ex -> ex
-                .accessDeniedHandler(accessDeniedHandler)
-            )
+            .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler))
             .userDetailsService(userDetailsService)
-            // Wrap authentication, authorization and controller handling with one JSON access log.
             .addFilterBefore(new HttpAccessLoggingFilter(structuredApplicationLogService),
                     UsernamePasswordAuthenticationFilter.class)
-            // 로그인해 있는 동안 정지되면 다음 요청에서 바로 끊는다.
-            // (필터를 @Component 로 두면 서블릿 체인에도 자동 등록되어 두 번 도므로 여기서 직접 만든다)
-            .addFilterAfter(new SuspendedUserFilter(userMapper, adminUserService, auditLogService), AuthorizationFilter.class)
-            .addFilterAfter(new UserBehaviorLoggingFilter(behaviorLogService), SuspendedUserFilter.class);
+            .addFilterAfter(new SuspendedUserFilter(userMapper, adminUserService, auditLogService),
+                    AuthorizationFilter.class);
         return http.build();
     }
 }

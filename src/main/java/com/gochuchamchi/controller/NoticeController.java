@@ -4,10 +4,12 @@ import com.gochuchamchi.dto.NoticeDto;
 import com.gochuchamchi.mapper.NoticeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.context.annotation.Profile;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@Profile("web")
 @RequestMapping("/notice")
 @RequiredArgsConstructor
 public class NoticeController {
